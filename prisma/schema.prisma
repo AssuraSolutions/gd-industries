@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for admin authentication
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Category model with parent-child relationship
+model Category {
+  id            String     @id @default(cuid())
+  name          String
+  slug          String     @unique
+  description   String?
+  image         String?
+  parentId      String?
+  parent        Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
+  subcategories Category[] @relation("CategoryToCategory")
+  products      Product[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([parentId])
+  @@index([slug])
+}
+
+// Product model
+model Product {
+  id            String      @id @default(cuid())
+  name          String
+  slug          String      @unique
+  description   String
+  price         Float
+  originalPrice Float?
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  images        String[]
+  sizes         String[]
+  colors        String[]
+  inStock       Boolean     @default(true)
+  featured      Boolean     @default(false)
+  stockCount    Int         @default(0)
+  sku           String?     @unique
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([featured])
+  @@index([inStock])
+}
+
+// Customer model
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([phone])
+}
+
+// Order model
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  customerId      String
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
+  subtotal        Float
+  shipping        Float
+  total           Float
+  status          OrderStatus @default(PENDING)
+  paymentMethod   String?
+  paymentStatus   String?
+  shippingStreet  String
+  shippingCity    String
+  shippingState   String
+  shippingZipCode String
+  shippingCountry String      @default("Pakistan")
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([customerId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Order Item model
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  price     Float
+  size      String
+  color     String
+  quantity  Int
+  subtotal  Float
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// Offer model
+model Offer {
+  id                    String       @id @default(cuid())
+  title                 String
+  description           String
+  code                  String       @unique
+  discountType          DiscountType
+  discountValue         Float
+  minOrderValue         Float?
+  maxDiscount           Float?
+  validFrom             DateTime
+  validTo               DateTime
+  isActive              Boolean      @default(true)
+  usageLimit            Int?
+  usageCount            Int          @default(0)
+  applicableCategories  String[]
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+  @@index([validFrom, validTo])
+}
+
+// Settings model for store configuration
+model Settings {
+  id                  String   @id @default(cuid())
+  storeName           String   @default("GD INDUSTRIES")
+  storeEmail          String
+  storePhone          String
+  whatsappNumber      String
+  storeAddress        String?
+  currency            String   @default("PKR")
+  currencySymbol      String   @default("Rs.")
+  freeShippingThreshold Float  @default(3000)
+  shippingCost        Float    @default(199)
+  taxRate             Float    @default(0)
+  logoUrl             String?
+  faviconUrl          String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Enums
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
