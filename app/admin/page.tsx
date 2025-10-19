@@ -1,105 +1,66 @@
-"use client"
+/**
+ * Admin Dashboard Page - Refactored Version
+ * Modern component-based architecture with Server Components
+ */
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Package, ShoppingCart, DollarSign, Tag } from "lucide-react"
-import { products, orders, offers } from "@/lib/data"
+import { getAdminDashboardStats, getAdminOrders } from '@/services/admin.service'
+import { StatsOverview } from '@/features/admin/components/stats-overview'
+import { RecentOrders } from '@/features/admin/components/recent-orders'
+import { QuickActions } from '@/features/admin/components/quick-actions'
+import { RecentActivity } from '@/features/admin/components/recent-activity'
+import { getRecentOrders } from '@/features/admin/utils'
+import type { ActivityItem } from '@/features/admin/types'
 
-export default function AdminPage() {
-  const totalProducts = products.length
-  const totalOrders = orders.length
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0)
-  const activeOffers = offers.filter((offer) => offer.isActive).length
+/**
+ * Generate recent activities from orders
+ */
+function generateRecentActivities(orders: Awaited<ReturnType<typeof getAdminOrders>>): ActivityItem[] {
+    return orders.slice(0, 5).map((order, index) => ({
+        id: `activity-${order.id}`,
+        type: 'order' as const,
+        action: 'New Order Received',
+        description: `Order ${order.id} from ${order.customerName} - Rs. ${order.total.toLocaleString()}`,
+        timestamp: new Date(Date.now() - index * 3600000), // Stagger timestamps
+    }))
+}
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your GD Industries e-commerce store</p>
-      </div>
+/**
+ * Admin Dashboard Page
+ */
+export default async function AdminDashboardPage() {
+    // Fetch data in parallel using Server Components
+    const [stats, allOrders] = await Promise.all([
+        getAdminDashboardStats(),
+        getAdminOrders(),
+    ])
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalProducts}</div>
-            <p className="text-xs text-muted-foreground">Active inventory items</p>
-          </CardContent>
-        </Card>
+    const recentOrders = getRecentOrders(allOrders, 5)
+    const recentActivities = generateRecentActivities(allOrders)
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalOrders}</div>
-            <p className="text-xs text-muted-foreground">Customer orders received</p>
-          </CardContent>
-        </Card>
+    return (
+        <div className="container mx-auto px-4 py-8 space-y-8">
+            {/* Page Header */}
+            <div>
+                <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+                <p className="text-muted-foreground">
+                    Overview of your GD Industries e-commerce store
+                </p>
+            </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Rs. {totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Total sales revenue</p>
-          </CardContent>
-        </Card>
+            {/* Statistics Overview */}
+            <StatsOverview stats={stats} />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Offers</CardTitle>
-            <Tag className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeOffers}</div>
-            <p className="text-xs text-muted-foreground">Current promotions</p>
-          </CardContent>
-        </Card>
-      </div>
+            {/* Quick Actions */}
+            <QuickActions />
 
-      {/* Recent Orders */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
-          <CardDescription>Latest customer orders</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {orders.slice(0, 5).map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">{order.customerName}</p>
-                  <p className="text-sm text-muted-foreground">{order.id}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">Rs. {order.total.toLocaleString()}</p>
-                  <Badge
-                    variant={
-                      order.status === "delivered"
-                        ? "default"
-                        : order.status === "processing"
-                          ? "secondary"
-                          : order.status === "shipped"
-                            ? "outline"
-                            : "destructive"
-                    }
-                  >
-                    {order.status}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+            {/* Recent Data Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Recent Orders */}
+                <RecentOrders orders={recentOrders} />
+
+                {/* Recent Activity */}
+                <RecentActivity activities={recentActivities} />
+            </div>
+        </div>
+    )
 }
