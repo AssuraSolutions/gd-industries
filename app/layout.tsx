@@ -7,6 +7,8 @@ import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
 import { Suspense } from 'react'
 import { defaultMetadata } from '@/config/site'
+import { Toaster } from '@/components/ui/toaster'
+import { Toaster as Sonner } from '@/components/ui/sonner'
 import './globals.css'
 
 export const metadata = defaultMetadata
@@ -20,6 +22,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <Suspense fallback={null}>{children}</Suspense>
+        <Toaster />
+        <Sonner />
         <Analytics />
       </body>
     </html>
