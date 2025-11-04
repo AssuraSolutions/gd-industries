@@ -4,7 +4,6 @@
 
 import type { Order, OrderStatus } from '@/features/orders/types'
 import type { Product } from '@/features/products/types'
-import type { Offer } from '@/features/offers/types'
 import type { AdminStats } from '@/features/admin/types'
 import { calculateAdminStats } from '@/features/admin/utils'
 

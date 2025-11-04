@@ -4,7 +4,6 @@
 
 import type { Order, OrderStatus } from '@/features/orders/types'
 import type { Product } from '@/features/products/types'
-import type { Offer } from '@/features/offers/types'
 
 /**
  * Admin dashboard statistics
@@ -13,7 +12,6 @@ export interface AdminStats {
   totalProducts: number
   totalOrders: number
   totalRevenue: number
-  activeOffers: number
   pendingOrders: number
   lowStockProducts: number
   revenueChange?: number // percentage
@@ -45,7 +43,7 @@ export interface AdminAuthState {
  */
 export interface ActivityItem {
   id: string
-  type: 'order' | 'product' | 'user' | 'offer'
+  type: 'order' | 'product' | 'user'
   action: string
   description: string
   timestamp: Date

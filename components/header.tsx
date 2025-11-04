@@ -69,9 +69,6 @@ export function Header() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Link href="/offers" className="text-sm font-medium hover:text-primary transition-colors">
-              Offers
-            </Link>
             <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">
               Contact
             </Link>
@@ -148,13 +145,6 @@ export function Header() {
                   </div>
                 ))}
               </div>
-              <Link
-                href="/offers"
-                className="px-2 py-1 text-sm font-medium hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Offers
-              </Link>
               <Link
                 href="/contact"
                 className="px-2 py-1 text-sm font-medium hover:text-primary transition-colors"

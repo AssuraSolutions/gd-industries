@@ -55,13 +55,6 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
                 icon={DollarSign}
             />
 
-            <StatCard
-                title="Active Offers"
-                value={stats.activeOffers}
-                description="Currently running promotions"
-                icon={Tag}
-            />
-
             {stats.pendingOrders > 0 && (
                 <StatCard
                     title="Pending Orders"

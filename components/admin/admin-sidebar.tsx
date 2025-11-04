@@ -27,11 +27,6 @@ const menuItems = [
     icon: ShoppingCart,
   },
   {
-    title: "Offers",
-    href: "/admin/offers",
-    icon: Tag,
-  },
-  {
     title: "Settings",
     href: "/admin/settings",
     icon: Settings,
