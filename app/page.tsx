@@ -8,7 +8,6 @@ import { WhatsAppButton } from '@/components/whatsapp-button'
 import { HeroSection } from '@/features/home/components/hero-section'
 import { FeaturesSection } from '@/features/home/components/features-section'
 import { FeaturedProductsSection } from '@/features/home/components/featured-products-section'
-import { ActiveOffersSection } from '@/features/home/components/active-offers-section'
 import { CategoriesSection } from '@/features/home/components/categories-section'
 import { ProductGridSkeleton } from '@/components/shared/loading-skeletons'
 
@@ -23,11 +22,6 @@ export default function HomePage() {
 
         {/* Features Section */}
         <FeaturesSection />
-
-        {/* Active Offers */}
-        <Suspense fallback={<div className="py-16" />}>
-          <ActiveOffersSection />
-        </Suspense>
 
         {/* Featured Products */}
         <Suspense fallback={<ProductGridSkeleton count={8} />}>

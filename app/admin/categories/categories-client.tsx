@@ -223,7 +223,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                                 <Label htmlFor="description">Description</Label>
                                 <Textarea
                                     id="description"
-                                    value={formData.description}
+                                    value={formData.description || ""}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     placeholder="Enter category description"
                                     rows={3}
@@ -411,7 +411,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                             <Label htmlFor="edit-description">Description</Label>
                             <Textarea
                                 id="edit-description"
-                                value={formData.description}
+                                value={formData.description || ""}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 placeholder="Enter category description"
                                 rows={3}

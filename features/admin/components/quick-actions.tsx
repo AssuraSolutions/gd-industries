@@ -17,7 +17,7 @@ export function QuickActions() {
             title: 'Add Product',
             description: 'Create a new product',
             icon: Plus,
-            href: '/admin/products/new',
+            href: '/admin/products',
             variant: 'default' as const,
         },
         {
@@ -26,21 +26,7 @@ export function QuickActions() {
             icon: Package,
             href: '/admin/products',
             variant: 'outline' as const,
-        },
-        {
-            title: 'Create Offer',
-            description: 'Add promotional offer',
-            icon: Tag,
-            href: '/admin/offers/new',
-            variant: 'outline' as const,
-        },
-        {
-            title: 'View Reports',
-            description: 'Sales analytics',
-            icon: FileText,
-            href: '/admin/reports',
-            variant: 'outline' as const,
-        },
+        }
     ]
 
     return (
