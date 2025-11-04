@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus } from "lucide-react" // Import Plus icon
 
 export default function AdminSettingsPage() {
   return (
@@ -20,7 +19,6 @@ export default function AdminSettingsPage() {
       <Tabs defaultValue="store" className="space-y-6">
         <TabsList>
           <TabsTrigger value="store">Store Info</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
         </TabsList>
 
@@ -52,63 +50,6 @@ export default function AdminSettingsPage() {
                 <Textarea id="description" rows={4} defaultValue="Premium quality clothing for modern individuals" />
               </div>
               <Button className="bg-red-500 hover:bg-red-600">Save Changes</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="categories" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Category Management</CardTitle>
-                  <CardDescription>Manage parent and child categories</CardDescription>
-                </div>
-                <Button className="bg-red-500 hover:bg-red-600">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Category
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">Men's Clothing</h3>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="ml-4 space-y-1 text-sm text-muted-foreground">
-                    <p>• T-Shirts</p>
-                    <p>• Shirts</p>
-                    <p>• Jeans</p>
-                  </div>
-                </div>
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">Women's Clothing</h3>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="ml-4 space-y-1 text-sm text-muted-foreground">
-                    <p>• Dresses</p>
-                    <p>• Tops</p>
-                    <p>• Skirts</p>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

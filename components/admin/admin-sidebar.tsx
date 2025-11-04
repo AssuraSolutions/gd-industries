@@ -12,6 +12,11 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
+    title: "Categories",
+    href: "/admin/categories",
+    icon: Tag,
+  },
+  {
     title: "Products",
     href: "/admin/products",
     icon: Package,
