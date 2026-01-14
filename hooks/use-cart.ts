@@ -5,17 +5,27 @@ import type { CartItem } from "@/lib/types"
 
 export function useCart() {
   const [items, setItems] = useState<CartItem[]>([])
+  const [isLoaded, setIsLoaded] = useState(false)
 
+  // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem("gd-cart")
     if (savedCart) {
-      setItems(JSON.parse(savedCart))
+      try {
+        setItems(JSON.parse(savedCart))
+      } catch (error) {
+        console.error("Failed to parse cart from localStorage:", error)
+      }
     }
+    setIsLoaded(true)
   }, [])
 
+  // Save cart to localStorage when items change (but only after initial load)
   useEffect(() => {
-    localStorage.setItem("gd-cart", JSON.stringify(items))
-  }, [items])
+    if (isLoaded) {
+      localStorage.setItem("gd-cart", JSON.stringify(items))
+    }
+  }, [items, isLoaded])
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {

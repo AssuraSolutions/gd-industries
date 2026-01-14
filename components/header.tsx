@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Search, ShoppingCart, Menu, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,12 +15,60 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { useCart } from "@/hooks/use-cart"
-import { categories } from "@/lib/data"
+import { useCart } from "@/components/providers/cart-provider"
+import { getCategories } from "@/services/category.service"
+import type { Category } from "@/features/categories/types"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [categories, setCategories] = useState<Category[]>([])
   const { itemCount } = useCart()
+  const router = useRouter()
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const data = await getCategories(false) // Get all categories including children
+        setCategories(data)
+      } catch (error) {
+        console.error('Failed to load categories:', error)
+      }
+    }
+
+    loadCategories()
+  }, [])
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery("")
+      setIsMenuOpen(false)
+    }
+  }
+
+  // Memoize category organization to prevent recalculation on every render
+  const { parentCategories, categoryMap } = useMemo(() => {
+    const parents = categories.filter(cat => !cat.parentId)
+    const childMap = new Map<string, Category[]>()
+
+    categories.forEach(cat => {
+      if (cat.parentId) {
+        if (!childMap.has(cat.parentId)) {
+          childMap.set(cat.parentId, [])
+        }
+        childMap.get(cat.parentId)!.push(cat)
+      }
+    })
+
+    return {
+      parentCategories: parents,
+      categoryMap: childMap
+    }
+  }, [categories])
+
+  const getChildCategories = (parentId: string) => categoryMap.get(parentId) || []
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -46,27 +95,27 @@ export function Header() {
                   <ChevronDown className="ml-1 h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                {categories.map((category) => (
-                  <div key={category.id}>
-                    <DropdownMenuItem asChild>
-                      <Link href={`/categories/${category.id}`} className="font-medium">
-                        {category.name}
-                      </Link>
-                    </DropdownMenuItem>
-                    {category.subcategories.map((subcategory) => (
-                      <DropdownMenuItem key={subcategory} asChild className="pl-6">
-                        <Link
-                          href={`/categories/${category.id}?subcategory=${encodeURIComponent(subcategory)}`}
-                          className="text-muted-foreground"
-                        >
-                          {subcategory}
+              <DropdownMenuContent align="start" className="w-56 max-h-[400px] overflow-y-auto">
+                {parentCategories.map((category) => {
+                  const childCategories = getChildCategories(category.id)
+                  return (
+                    <div key={category.id}>
+                      <DropdownMenuItem asChild>
+                        <Link href={`/categories/${category.id}`} className="font-medium">
+                          {category.name}
                         </Link>
                       </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                  </div>
-                ))}
+                      {childCategories.map((child) => (
+                        <DropdownMenuItem key={child.id} asChild className="pl-6">
+                          <Link href={`/categories/${child.id}`} className="text-muted-foreground">
+                            {child.name}
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                      {childCategories.length > 0 && <DropdownMenuSeparator />}
+                    </div>
+                  )
+                })}
               </DropdownMenuContent>
             </DropdownMenu>
             <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">
@@ -76,10 +125,15 @@ export function Header() {
 
           {/* Search Bar */}
           <div className="hidden md:flex items-center space-x-2 flex-1 max-w-sm mx-6">
-            <div className="relative w-full">
+            <form onSubmit={handleSearch} className="relative w-full">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search products..." className="pl-8" />
-            </div>
+              <Input
+                placeholder="Search products..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
           </div>
 
           {/* Actions */}
@@ -123,27 +177,30 @@ export function Header() {
               </Link>
               <div className="px-2 py-1">
                 <p className="text-sm font-medium mb-2">Categories</p>
-                {categories.map((category) => (
-                  <div key={category.id} className="ml-2 mb-2">
-                    <Link
-                      href={`/categories/${category.id}`}
-                      className="block text-sm font-medium hover:text-primary transition-colors py-1"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {category.name}
-                    </Link>
-                    {category.subcategories.map((subcategory) => (
+                {parentCategories.map((category) => {
+                  const childCategories = getChildCategories(category.id)
+                  return (
+                    <div key={category.id} className="ml-2 mb-2">
                       <Link
-                        key={subcategory}
-                        href={`/categories/${category.id}?subcategory=${encodeURIComponent(subcategory)}`}
-                        className="block text-xs text-muted-foreground hover:text-primary transition-colors py-1 ml-4"
+                        href={`/categories/${category.id}`}
+                        className="block text-sm font-medium hover:text-primary transition-colors py-1"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        {subcategory}
+                        {category.name}
                       </Link>
-                    ))}
-                  </div>
-                ))}
+                      {childCategories.map((child) => (
+                        <Link
+                          key={child.id}
+                          href={`/categories/${child.id}`}
+                          className="block text-xs text-muted-foreground hover:text-primary transition-colors py-1 ml-4"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )
+                })}
               </div>
               <Link
                 href="/contact"
@@ -156,10 +213,15 @@ export function Header() {
 
             {/* Mobile Search */}
             <div className="mt-4 px-2">
-              <div className="relative">
+              <form onSubmit={handleSearch} className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search products..." className="pl-8" />
-              </div>
+                <Input
+                  placeholder="Search products..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </form>
             </div>
           </div>
         )}

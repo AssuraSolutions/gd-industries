@@ -2,7 +2,10 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { WhatsAppButton } from "@/components/whatsapp-button"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,9 +13,15 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { MapPin, Phone, Mail, Clock, MessageCircle, Send } from "lucide-react"
+import { getSettings } from "@/app/admin/settings/actions"
+import type { SettingsFormData } from "@/app/admin/settings/actions"
+import { toast } from "@/lib/toast"
 
 export default function ContactPage() {
+  const [settings, setSettings] = useState<SettingsFormData | null>(null)
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,27 +30,65 @@ export default function ContactPage() {
     message: "",
   })
 
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const result = await getSettings()
+        if (result.success && result.settings) {
+          setSettings(result.settings)
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error)
+      } finally {
+        setIsLoadingSettings(false)
+      }
+    }
+    loadSettings()
+  }, [])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log("Form submitted:", formData)
-    // Reset form
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: "",
-      message: "",
-    })
+
+    // Construct email subject and body
+    const subject = encodeURIComponent(`Contact Form: ${formData.subject || 'General Inquiry'}`)
+    const body = encodeURIComponent(
+      `Name: ${formData.name}\n` +
+      `Email: ${formData.email}\n` +
+      `Phone: ${formData.phone || 'N/A'}\n` +
+      `Subject: ${formData.subject || 'General Inquiry'}\n\n` +
+      `Message:\n${formData.message}`
+    )
+
+    // Get email from settings or use default
+    const email = settings?.storeEmail
+
+    // Open mailto link
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
+
+    // Show success message
+    toast.success("Email client opened", "Your default email client should open with the message")
+
+    // Reset form after a short delay
+    setTimeout(() => {
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      })
+    }, 1000)
   }
 
   const handleWhatsApp = () => {
+    const whatsappNumber = settings?.whatsappNumber?.replace(/[^0-9]/g, '') || '94779858233'
     const message = encodeURIComponent("Hi! I'd like to get in touch regarding your products.")
-    window.open(`https://wa.me/94779858233?text=${message}`, "_blank")
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank")
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -64,41 +111,58 @@ export default function ContactPage() {
                 <CardDescription>Get in touch with us directly</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">Dehiwala, Sri Lanka</p>
-                  </div>
-                </div>
+                {isLoadingSettings ? (
+                  <>
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                  </>
+                ) : (
+                  <>
+                    {settings?.storeAddress && (
+                      <div className="flex items-start gap-3">
+                        <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium">Address</p>
+                          <p className="text-sm text-muted-foreground">{settings.storeAddress}</p>
+                        </div>
+                      </div>
+                    )}
 
-                <div className="flex items-start gap-3">
-                  <Phone className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Phone</p>
-                    <p className="text-sm text-muted-foreground">+94 77 985 8233</p>
-                  </div>
-                </div>
+                    {settings?.storePhone && (
+                      <div className="flex items-start gap-3">
+                        <Phone className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium">Phone</p>
+                          <p className="text-sm text-muted-foreground">{settings.storePhone}</p>
+                        </div>
+                      </div>
+                    )}
 
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">info@gdindustries.com</p>
-                  </div>
-                </div>
+                    {settings?.storeEmail && (
+                      <div className="flex items-start gap-3">
+                        <Mail className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium">Email</p>
+                          <p className="text-sm text-muted-foreground">{settings.storeEmail}</p>
+                        </div>
+                      </div>
+                    )}
 
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Business Hours</p>
-                    <p className="text-sm text-muted-foreground">
-                      Monday - Saturday: 9:00 AM - 8:00 PM
-                      <br />
-                      Sunday: 10:00 AM - 6:00 PM
-                    </p>
-                  </div>
-                </div>
+                    <div className="flex items-start gap-3">
+                      <Clock className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="font-medium">Business Hours</p>
+                        <p className="text-sm text-muted-foreground">
+                          Monday - Saturday: 9:00 AM - 8:00 PM
+                          <br />
+                          Sunday: 10:00 AM - 6:00 PM
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -215,6 +279,9 @@ export default function ContactPage() {
           </Card>
         </div>
       </div>
+
+      <Footer />
+      <WhatsAppButton />
     </div>
   )
 }

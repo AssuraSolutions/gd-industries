@@ -41,6 +41,8 @@ export default function ProductsClient({ products: initialProducts, categories }
     const [selectedProduct, setSelectedProduct] = useState<ProductWithCategory | null>(null)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [editingProduct, setEditingProduct] = useState<ProductWithCategory | null>(null)
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 10
 
     const [formData, setFormData] = useState<Partial<CreateProductInput>>({
         name: "",

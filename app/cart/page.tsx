@@ -3,13 +3,16 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { WhatsAppButton } from "@/components/whatsapp-button"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Download } from "lucide-react"
-import { useCart } from "@/hooks/use-cart"
+import { useCart } from "@/components/providers/cart-provider"
 import { generateCartPDF } from "@/lib/pdf-generator"
 
 export default function CartPage() {
@@ -66,6 +69,7 @@ export default function CartPage() {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-background">
+        <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-16">
             <ShoppingBag className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -76,12 +80,15 @@ export default function CartPage() {
             </Link>
           </div>
         </div>
+        <Footer />
+        <WhatsAppButton />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -119,8 +126,8 @@ export default function CartPage() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-sm">{item.name}</h3>
                       <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                        <span>Size: {item.size}</span>
-                        <span>Color: {item.color}</span>
+                        {item.size && <span>Size: {item.size}</span>}
+                        {item.color && <span>Color: {item.color}</span>}
                       </div>
 
                       <div className="flex items-center gap-2 mt-2">
@@ -128,17 +135,8 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeItem(item.productId, item.size, item.color)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1">
                         <Button
                           variant="outline"
                           size="sm"
@@ -156,6 +154,15 @@ export default function CartPage() {
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeItem(item.productId, item.size, item.color)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -175,10 +182,6 @@ export default function CartPage() {
                     <span>Subtotal</span>
                     <span>Rs. {subtotal.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Shipping</span>
-                    <span>{shipping === 0 ? "Free" : `Rs. ${shipping}`}</span>
-                  </div>
                   {shipping === 0 && <p className="text-xs text-green-600">Free shipping on orders over Rs. 3,000</p>}
                 </div>
 
@@ -187,14 +190,6 @@ export default function CartPage() {
                 <div className="flex justify-between font-medium">
                   <span>Total</span>
                   <span>Rs. {total.toLocaleString()}</span>
-                </div>
-
-                {/* Promo Code */}
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Input placeholder="Promo code" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
-                    <Button variant="outline">Apply</Button>
-                  </div>
                 </div>
 
                 <Button
@@ -219,20 +214,13 @@ export default function CartPage() {
                   Order Now via WhatsApp
                 </Button>
 
-                <Button className="w-full" size="lg">
-                  Proceed to Checkout
-                </Button>
-
-                <div className="text-center">
-                  <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
-                    Secure Checkout
-                  </Badge>
-                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+      <Footer />
+      <WhatsAppButton />
     </div>
   )
 }

@@ -159,11 +159,9 @@ model Settings {
   storePhone          String
   whatsappNumber      String
   storeAddress        String?
-  currency            String   @default("PKR")
+  currency            String   @default("LKR")
   currencySymbol      String   @default("Rs.")
-  freeShippingThreshold Float  @default(3000)
-  shippingCost        Float    @default(199)
-  taxRate             Float    @default(0)
+
   logoUrl             String?
   faviconUrl          String?
   createdAt           DateTime @default(now())
