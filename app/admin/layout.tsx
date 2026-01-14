@@ -40,7 +40,7 @@ export default function AdminLayout({
     <div className="min-h-screen bg-background">
       <AdminHeader />
       <AdminSidebar />
-      <main className="pt-16 pl-64">{children}</main>
+      <main className="pt-1 pl-64">{children}</main>
     </div>
   )
 }

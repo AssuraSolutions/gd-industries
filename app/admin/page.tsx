@@ -38,12 +38,12 @@ export default async function AdminDashboardPage() {
     const recentActivities = generateRecentActivities(allOrders)
 
     return (
-        <div className="container mx-auto px-4 py-8 space-y-8">
+        <div className="container mx-auto px-4 py-2 space-y-4">
             {/* Page Header */}
             <div>
                 <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
                 <p className="text-muted-foreground">
-                    Overview of your GD Industries e-commerce store
+                    Overview of your GD Industries
                 </p>
             </div>
 
@@ -54,13 +54,13 @@ export default async function AdminDashboardPage() {
             <QuickActions />
 
             {/* Recent Data Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> */}
                 {/* Recent Orders */}
-                <RecentOrders orders={recentOrders} />
+                {/* <RecentOrders orders={recentOrders} /> */}
 
                 {/* Recent Activity */}
-                <RecentActivity activities={recentActivities} />
-            </div>
+                {/* <RecentActivity activities={recentActivities} /> */}
+            {/* </div> */}
         </div>
     )
 }

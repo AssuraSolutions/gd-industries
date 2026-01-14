@@ -32,48 +32,6 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
                         : undefined
                 }
             />
-
-            <StatCard
-                title="Total Orders"
-                value={stats.totalOrders}
-                description="Customer orders received"
-                icon={ShoppingCart}
-                trend={
-                    stats.ordersChange
-                        ? {
-                            value: stats.ordersChange,
-                            label: 'from last month',
-                        }
-                        : undefined
-                }
-            />
-
-            <StatCard
-                title="Total Revenue"
-                value={`Rs. ${formatRevenue(stats.totalRevenue)}`}
-                description="Lifetime earnings"
-                icon={DollarSign}
-            />
-
-            {stats.pendingOrders > 0 && (
-                <StatCard
-                    title="Pending Orders"
-                    value={stats.pendingOrders}
-                    description="Awaiting processing"
-                    icon={AlertCircle}
-                    className="border-yellow-200 dark:border-yellow-800"
-                />
-            )}
-
-            {stats.lowStockProducts > 0 && (
-                <StatCard
-                    title="Low Stock"
-                    value={stats.lowStockProducts}
-                    description="Products out of stock"
-                    icon={TrendingUp}
-                    className="border-red-200 dark:border-red-800"
-                />
-            )}
         </div>
     )
 }

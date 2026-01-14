@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import { Header } from "@/components/header"
@@ -11,10 +11,15 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { products } from "@/lib/data"
-import { useCart } from "@/hooks/use-cart"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { getProductById, getProducts } from "@/services/product.service"
+import { useCart } from "@/components/providers/cart-provider"
+import { toast } from "@/lib/toast"
 import { ShoppingCart, Heart, Share2, ArrowLeft, Star } from "lucide-react"
+import { ProductCard } from "@/components/product-card"
 import Link from "next/link"
+import type { Product } from "@/features/products/types"
 
 interface ProductPageProps {
   params: {
@@ -23,12 +28,85 @@ interface ProductPageProps {
 }
 
 export default function ProductPage({ params }: ProductPageProps) {
-  const product = products.find((p) => p.id === params.id)
+  const [product, setProduct] = useState<Product | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false)
   const [selectedSize, setSelectedSize] = useState("")
   const [selectedColor, setSelectedColor] = useState("")
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const { addItem } = useCart()
+
+  useEffect(() => {
+    async function loadProduct() {
+      try {
+        const data = await getProductById(params.id)
+        if (!data) {
+          notFound()
+        }
+        setProduct(data)
+      } catch (error) {
+        console.error('Failed to load product:', error)
+        notFound()
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadProduct()
+  }, [params.id])
+
+  // Load related products based on category
+  useEffect(() => {
+    async function loadRelatedProducts() {
+      if (!product) return
+
+      setIsLoadingRelated(true)
+      try {
+        const categoryId = typeof product.category === 'object' ? product.category?.id : product.category
+        if (!categoryId) return
+
+        const allProducts = await getProducts()
+        // Filter products by same category, excluding current product
+        const related = allProducts
+          .filter(p => {
+            const pCategoryId = typeof p.category === 'object' ? p.category?.id : p.category
+            return pCategoryId === categoryId && p.id !== product.id
+          })
+          .slice(0, 8) // Limit to 8 related products
+
+        setRelatedProducts(related)
+      } catch (error) {
+        console.error('Failed to load related products:', error)
+      } finally {
+        setIsLoadingRelated(false)
+      }
+    }
+
+    loadRelatedProducts()
+  }, [product])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <Skeleton className="h-8 w-48 mb-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <Skeleton className="aspect-square rounded-lg" />
+            <div className="space-y-6">
+              <Skeleton className="h-10 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
 
   if (!product) {
     notFound()
@@ -40,23 +118,26 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   const handleAddToCart = () => {
     if (product.sizes && product.sizes.length > 0 && !selectedSize) {
-      alert("Please select a size")
+      toast.error("Please select a size")
       return
     }
     if (product.colors && product.colors.length > 0 && !selectedColor) {
-      alert("Please select a color")
+      toast.error("Please select a color")
       return
     }
 
-    addItem({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images[0],
-      size: selectedSize,
-      color: selectedColor,
-      quantity,
-    })
+    for (let i = 0; i < quantity; i++) {
+      addItem({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0],
+        size: selectedSize,
+        color: selectedColor,
+      })
+    }
+
+    toast.success("Added to cart", `${quantity} ${quantity > 1 ? 'items' : 'item'} added to your cart`)
   }
 
   return (
@@ -112,9 +193,8 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`relative w-20 h-20 rounded-md overflow-hidden border-2 ${
-                      selectedImage === index ? "border-primary" : "border-muted"
-                    }`}
+                    className={`relative w-20 h-20 rounded-md overflow-hidden border-2 ${selectedImage === index ? "border-primary" : "border-muted"
+                      }`}
                   >
                     <Image
                       src={image || "/placeholder.svg"}
@@ -158,9 +238,11 @@ export default function ProductPage({ params }: ProductPageProps) {
               <Badge variant={product.inStock ? "default" : "destructive"}>
                 {product.inStock ? "In Stock" : "Out of Stock"}
               </Badge>
-              <span className="text-sm text-muted-foreground">
-                Category: {product.category} • {product.subcategory}
-              </span>
+              {typeof product.category === 'object' && product.category?.name && (
+                <span className="text-sm text-muted-foreground">
+                  Category: {product.category.name}
+                </span>
+              )}
             </div>
 
             <Separator />
@@ -243,16 +325,14 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">SKU:</span>
-                    <span>{product.id}</span>
+                    <span>{product.sku || product.id}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Category:</span>
-                    <span>{product.category}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subcategory:</span>
-                    <span>{product.subcategory}</span>
-                  </div>
+                  {typeof product.category === 'object' && product.category?.name && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Category:</span>
+                      <span>{product.category.name}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Available Sizes:</span>
                     <span>{product.sizes?.join(", ") || "One Size"}</span>
@@ -266,6 +346,52 @@ export default function ProductPage({ params }: ProductPageProps) {
             </Card>
           </div>
         </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-16">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold mb-2">Related Products</h2>
+              <p className="text-muted-foreground">More products from the same category</p>
+            </div>
+
+            {isLoadingRelated ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, index) => (
+                  <div key={index} className="space-y-3">
+                    <Skeleton className="aspect-square rounded-lg" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : relatedProducts.length <= 4 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {relatedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {relatedProducts.map((product) => (
+                    <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
+                      <ProductCard product={product} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="-left-4" />
+                <CarouselNext className="-right-4" />
+              </Carousel>
+            )}
+          </div>
+        )}
       </div>
 
       <Footer />

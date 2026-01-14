@@ -19,13 +19,6 @@ export function QuickActions() {
             icon: Plus,
             href: '/admin/products',
             variant: 'default' as const,
-        },
-        {
-            title: 'Manage Inventory',
-            description: 'Update stock levels',
-            icon: Package,
-            href: '/admin/products',
-            variant: 'outline' as const,
         }
     ]
 

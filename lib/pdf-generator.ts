@@ -88,11 +88,6 @@ export async function generateCartPDF(items: CartItem[], totals: CartTotals) {
   doc.text(`Rs. ${totals.subtotal.toLocaleString()}`, 175, yPosition)
   yPosition += 7
 
-  // Shipping
-  doc.text("Shipping:", 130, yPosition)
-  doc.text(totals.shipping === 0 ? "Free" : `Rs. ${totals.shipping.toLocaleString()}`, 175, yPosition)
-  yPosition += 7
-
   // Total line
   doc.setDrawColor(0, 0, 0)
   doc.line(130, yPosition, 190, yPosition)
