@@ -5,6 +5,8 @@ import { existsSync } from 'fs'
 
 export const dynamic = 'force-dynamic'
 
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+
 export async function POST(request: NextRequest) {
   try {
     const data = await request.formData()
@@ -33,22 +35,31 @@ export async function POST(request: NextRequest) {
     const originalName = file.name.replace(/\s+/g, '-') // Replace spaces with hyphens
     const fileName = `${timestamp}-${originalName}`
 
+    let uploadsDir: string
+    let publicUrl: string
+
+    if (isServerless) {
+      uploadsDir = join('/tmp', 'uploads')
+      publicUrl = `/uploads/${fileName}`
+    } else {
+      uploadsDir = join(process.cwd(), 'public', 'uploads')
+      publicUrl = `/uploads/${fileName}`
+    }
+
     // Ensure uploads directory exists
-    const uploadsDir = join(process.cwd(), 'public', 'uploads')
     if (!existsSync(uploadsDir)) {
       await mkdir(uploadsDir, { recursive: true })
     }
 
-    // Write file to public/uploads
     const filePath = join(uploadsDir, fileName)
     await writeFile(filePath, buffer)
 
-    // Return the public URL
-    const publicUrl = `/uploads/${fileName}`
-
     return NextResponse.json({ 
       success: true, 
-      url: publicUrl 
+      url: publicUrl,
+      ...(isServerless && { 
+        warning: 'File uploaded to temporary storage. Consider using cloud storage for production.' 
+      })
     })
   } catch (error) {
     console.error('Upload error:', error)
