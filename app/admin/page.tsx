@@ -11,6 +11,8 @@ import { RecentActivity } from '@/features/admin/components/recent-activity'
 import { getRecentOrders } from '@/features/admin/utils'
 import type { ActivityItem } from '@/features/admin/types'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * Generate recent activities from orders
  */
