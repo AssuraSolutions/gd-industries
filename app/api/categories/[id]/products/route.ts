@@ -5,6 +5,10 @@ export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 export const revalidate = 0
 
+export async function generateStaticParams() {
+  return []
+}
+
 /**
  * GET /api/categories/[id]/products
  * Get all products for a category including products from child categories
