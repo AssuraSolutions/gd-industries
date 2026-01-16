@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
+export const revalidate = 0
 
 /**
  * GET /api/products/[id]
