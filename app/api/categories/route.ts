@@ -25,7 +25,15 @@ export async function GET(request: Request) {
       where,
       include: {
         parent: true,
-        subcategories: true,
+        subcategories: includeProducts === 'true' ? {
+          include: {
+            _count: {
+              select: {
+                products: true,
+              },
+            },
+          },
+        } : true,
         ...(includeProducts === 'true' && {
           _count: {
             select: {
@@ -39,10 +47,27 @@ export async function GET(request: Request) {
       },
     })
 
+    // If includeProducts, calculate total product count including subcategories
+    const categoriesWithTotalCount = includeProducts === 'true' 
+      ? categories.map(category => {
+          const directProductCount = (category as any)._count?.products || 0
+          const subcategoryProductCount = (category.subcategories as any[])?.reduce(
+            (sum, subcat) => sum + (subcat._count?.products || 0),
+            0
+          ) || 0
+          return {
+            ...category,
+            _count: {
+              products: directProductCount + subcategoryProductCount,
+            },
+          }
+        })
+      : categories
+
     return NextResponse.json({
       success: true,
-      categories,
-      count: categories.length,
+      categories: categoriesWithTotalCount,
+      count: categoriesWithTotalCount.length,
     })
   } catch (error) {
     console.error('Error fetching categories:', error)

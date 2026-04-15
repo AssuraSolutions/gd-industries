@@ -72,6 +72,9 @@ export async function GET(request: Request) {
         case 'price-high':
           orderBy = { price: 'desc' }
           break
+        case 'popular':
+          orderBy = { featured: 'desc' }
+          break
         case 'name-asc':
           orderBy = { name: 'asc' }
           break

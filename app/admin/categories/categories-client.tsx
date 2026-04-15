@@ -64,6 +64,11 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
             return
         }
 
+        if (!formData.parentId && uploadedImage.length === 0) {
+            toast.error("Validation Error", "Image is required for top-level categories")
+            return
+        }
+
         setIsSubmitting(true)
 
         try {
@@ -144,6 +149,11 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
 
         if (!formData.name) {
             toast.error("Validation Error", "Please enter a category name")
+            return
+        }
+
+        if (!formData.parentId && uploadedImage.length === 0) {
+            toast.error("Validation Error", "Image is required for top-level categories")
             return
         }
 
@@ -231,7 +241,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="parentId">Parent Category (Optional)</Label>
+                                <Label htmlFor="parentId">Parent Category</Label>
                                 <Select
                                     value={formData.parentId || "none"}
                                     onValueChange={(value) => setFormData({ ...formData, parentId: value === "none" ? null : value })}
@@ -251,7 +261,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Category Image (Optional)</Label>
+                                <Label>Category Image {!formData.parentId && <span className="text-red-500">*</span>}</Label>
                                 <ImageUpload
                                     value={uploadedImage}
                                     onChange={setUploadedImage}
@@ -419,7 +429,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="edit-parentId">Parent Category (Optional)</Label>
+                            <Label htmlFor="edit-parentId">Parent Category</Label>
                             <Select
                                 value={formData.parentId || "none"}
                                 onValueChange={(value) => setFormData({ ...formData, parentId: value === "none" ? null : value })}
@@ -441,7 +451,9 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Category Image (Optional)</Label>
+                            <Label>
+                                Category Image {!formData.parentId && <span className="text-red-500">*</span>}
+                            </Label>
                             <ImageUpload
                                 value={uploadedImage}
                                 onChange={setUploadedImage}

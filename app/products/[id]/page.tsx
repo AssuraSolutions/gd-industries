@@ -2,23 +2,25 @@
 
 import { useState, useEffect } from "react"
 import { notFound } from "next/navigation"
-import Image from "next/image"
+import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { WhatsAppButton } from "@/components/whatsapp-button"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { getProductById, getProducts } from "@/services/product.service"
 import { useCart } from "@/components/providers/cart-provider"
 import { toast } from "@/lib/toast"
-import { ShoppingCart, Heart, Share2, ArrowLeft, Star } from "lucide-react"
-import { ProductCard } from "@/components/product-card"
-import Link from "next/link"
+import { 
+  ShoppingCart,
+  Share2, 
+  ArrowLeft,
+  ChevronRight,
+  Minus,
+  Plus
+} from "lucide-react"
 import type { Product } from "@/features/products/types"
 
 interface ProductPageProps {
@@ -36,6 +38,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [selectedColor, setSelectedColor] = useState("")
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [activeTab, setActiveTab] = useState("details")
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -46,6 +49,13 @@ export default function ProductPage({ params }: ProductPageProps) {
           notFound()
         }
         setProduct(data)
+        
+        if (data.colors && data.colors.length > 0) {
+          setSelectedColor(data.colors[0])
+        }
+        if (data.sizes && data.sizes.length > 0) {
+          setSelectedSize(data.sizes[0])
+        }
       } catch (error) {
         console.error('Failed to load product:', error)
         notFound()
@@ -64,17 +74,18 @@ export default function ProductPage({ params }: ProductPageProps) {
 
       setIsLoadingRelated(true)
       try {
-        const categoryId = typeof product.category === 'object' ? product.category?.id : product.category
-        if (!categoryId) return
+        const categoryId = typeof product.category === 'object' ? (product.category as any).id : product.category
+        if (!categoryId) {
+          setIsLoadingRelated(false)
+          return
+        }
 
-        const allProducts = await getProducts()
+        const response = await getProducts()
         // Filter products by same category, excluding current product
-        const related = allProducts
-          .filter(p => {
-            const pCategoryId = typeof p.category === 'object' ? p.category?.id : p.category
-            return pCategoryId === categoryId && p.id !== product.id
-          })
-          .slice(0, 8) // Limit to 8 related products
+        const related = response.products.filter((p: Product) => {
+          const pCategoryId = typeof p.category === 'object' ? (p.category as any).id : p.category
+          return pCategoryId === categoryId && p.id !== product.id
+        }).slice(0, 8)
 
         setRelatedProducts(related)
       } catch (error) {
@@ -117,15 +128,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     : 0
 
   const handleAddToCart = () => {
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
-      toast.error("Please select a size")
-      return
-    }
-    if (product.colors && product.colors.length > 0 && !selectedColor) {
-      toast.error("Please select a color")
-      return
-    }
-
     for (let i = 0; i < quantity; i++) {
       addItem({
         productId: product.id,
@@ -140,259 +142,401 @@ export default function ProductPage({ params }: ProductPageProps) {
     toast.success("Added to cart", `${quantity} ${quantity > 1 ? 'items' : 'item'} added to your cart`)
   }
 
+  const formatPrice = (price: number) => {
+    return `Rs. ${price.toLocaleString()}`
+  }
+
+  const handleShare = async () => {
+    if (!product) return
+
+    const shareData = {
+      title: product.name,
+      text: `Check out ${product.name}`,
+      url: window.location.href,
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else {
+        await navigator.clipboard.writeText(window.location.href)
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Error sharing:', error)
+      }
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark:bg-background">
       <Header />
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/" className="hover:text-primary">
-            Home
+      {/* Breadcrumb */}
+      <div className="bg-background dark:bg-background border-b border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <nav aria-label="Breadcrumb" className="flex text-sm text-slate-500 dark:text-slate-400">
+            <ol className="inline-flex items-center space-x-1 md:space-x-3">
+              <li className="inline-flex items-center">
+                <Link href="/" className="hover:text-primary dark:hover:text-primary transition">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <ChevronRight className="h-4 w-4 mx-1" />
+                  {product && product.category ? (
+                    <Link href="/categories" className="hover:text-primary dark:hover:text-primary transition">
+                      {typeof product.category === 'object' ? (product.category as any).name : product.category}
+                    </Link>
+                  ) : (
+                    <Link href="/products" className="hover:text-primary dark:hover:text-primary transition">
+                      Products
+                    </Link>
+                  )}
+                </div>
+              </li>
+              {product && (
+                <li aria-current="page">
+                  <div className="flex items-center">
+                    <ChevronRight className="h-4 w-4 mx-1" />
+                    <span className="text-slate-900 dark:text-white font-medium">{product.name}</span>
+                  </div>
+                </li>
+              )}
+            </ol>
+          </nav>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Mobile Back Button */}
+        <div className="md:hidden mb-4">
+          <Link 
+            href="/products"
+            className="inline-flex items-center text-primary font-medium text-sm hover:underline"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Products
           </Link>
-          <span>/</span>
-          <Link href="/products" className="hover:text-primary">
-            Products
-          </Link>
-          <span>/</span>
-          <span className="text-foreground">{product.name}</span>
         </div>
 
-        {/* Back Button */}
-        <Link href="/products">
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Products
-          </Button>
-        </Link>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Images */}
-          <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-lg border">
-              <Image
-                src={product.images[selectedImage] || "/placeholder.svg"}
-                alt={product.name}
-                fill
-                className="object-cover"
-              />
-              {discountPercentage > 0 && (
-                <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">
-                  -{discountPercentage}%
-                </Badge>
-              )}
-              {product.featured && (
-                <Badge className="absolute top-4 right-4 bg-secondary text-secondary-foreground">Featured</Badge>
-              )}
+        {isLoading ? (
+          <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
+            <Skeleton className="h-[600px] rounded-2xl" />
+            <div className="space-y-6 mt-10 lg:mt-0">
+              <Skeleton className="h-12 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-24 w-full" />
             </div>
-
-            {/* Image Thumbnails */}
-            {product.images.length > 1 && (
-              <div className="flex gap-2">
-                {product.images.map((image, index) => (
+          </div>
+        ) : !product ? (
+          notFound()
+        ) : (
+          <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
+            {/* Image Gallery */}
+            <div className="flex flex-col-reverse lg:flex-row gap-4">
+              {/* Thumbnail Sidebar */}
+              <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 lg:w-24 flex-shrink-0 no-scrollbar">
+                {(product.images && product.images.length > 0 ? product.images : ['/placeholder.jpg']).map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`relative w-20 h-20 rounded-md overflow-hidden border-2 ${selectedImage === index ? "border-primary" : "border-muted"
-                      }`}
+                    className={`aspect-[3/4] rounded-lg overflow-hidden border-2 transition flex-shrink-0 w-20 lg:w-full ${
+                      selectedImage === index
+                        ? 'border-primary ring-2 ring-primary ring-opacity-50'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary'
+                    }`}
                   >
-                    <Image
-                      src={image || "/placeholder.svg"}
+                    <img
+                      src={image}
                       alt={`${product.name} ${index + 1}`}
-                      fill
-                      className="object-cover"
+                      className={`w-full h-full object-cover transition ${
+                        selectedImage === index ? '' : 'opacity-80 hover:opacity-100'
+                      }`}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder.jpg'
+                      }}
                     />
                   </button>
                 ))}
               </div>
-            )}
-          </div>
 
-          {/* Product Details */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                  <span className="ml-2 text-sm text-muted-foreground">(4.8) 124 reviews</span>
+              {/* Main Image */}
+              <div className="flex-1">
+                <div className="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-[#EFEDE6] dark:bg-slate-800 relative group shadow-sm">
+                  <img
+                    src={(product.images && product.images.length > 0 ? product.images[selectedImage] : '/placeholder.jpg') || '/placeholder.jpg'}
+                    alt={product.name}
+                    className="w-full h-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/placeholder.jpg'
+                    }}
+                  />
                 </div>
               </div>
-              <p className="text-muted-foreground text-lg">{product.description}</p>
             </div>
 
-            {/* Price */}
-            <div className="flex items-center gap-4">
-              <span className="text-3xl font-bold text-primary">Rs. {product.price.toLocaleString()}</span>
-              {product.originalPrice && (
-                <span className="text-xl text-muted-foreground line-through">
-                  Rs. {product.originalPrice.toLocaleString()}
-                </span>
-              )}
-            </div>
-
-            {/* Stock Status */}
-            <div className="flex items-center gap-2">
-              <Badge variant={product.inStock ? "default" : "destructive"}>
-                {product.inStock ? "In Stock" : "Out of Stock"}
-              </Badge>
-              {typeof product.category === 'object' && product.category?.name && (
-                <span className="text-sm text-muted-foreground">
-                  Category: {product.category.name}
-                </span>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Size Selection */}
-            {product.sizes && product.sizes.length > 0 && (
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Size</label>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {product.sizes.map((size) => (
-                      <SelectItem key={size} value={size}>
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* Product Details */}
+            <div className="mt-10 px-2 sm:px-0 lg:mt-0">
+              {/* Header */}
+              <div className="mt-2 flex items-center gap-2">
+                  <Badge className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    product.inStock 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                      : 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200'
+                  }`}>
+                    {product.inStock ? 'In Stock' : 'Out of Stock'}
+                  </Badge>
+                </div>
+              <div className="mb-6">
+                <h1 className="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-white mb-2">
+                  {product.name}
+                </h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {product.category 
+                    ? `${typeof product.category === 'object' ? (product.category as any).name : product.category} Collection` 
+                    : 'Premium Collection'} • Item #{product.sku}
+                </p>
               </div>
-            )}
 
-            {/* Color Selection */}
-            {product.colors && product.colors.length > 0 && (
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Color</label>
-                <Select value={selectedColor} onValueChange={setSelectedColor}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select color" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {product.colors.map((color) => (
-                      <SelectItem key={color} value={color}>
-                        {color}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Price */}
+              <div className="mb-4 border-b border-slate-200 dark:border-slate-700 pb-8">
+                <div className="flex items-end gap-3">
+                  <p className="text-2xl font-bold text-primary">{formatPrice(product.price)}</p>
+                  {product.originalPrice && (
+                    <>
+                      <p className="text-lg text-slate-500 line-through mb-1">
+                        {formatPrice(product.originalPrice)}
+                      </p>
+                      <Badge className="text-sm font-medium text-green-700 bg-green-100 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded mb-1.5">
+                        -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                      </Badge>
+                    </>
+                  )}
+                </div>
               </div>
-            )}
-
-            {/* Quantity */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium">Quantity</label>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
-                >
-                  -
-                </Button>
-                <span className="w-12 text-center">{quantity}</span>
-                <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
-                  +
-                </Button>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <Button onClick={handleAddToCart} disabled={!product.inStock} className="flex-1" size="lg">
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart
-              </Button>
-              <Button variant="outline" size="lg">
-                <Heart className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="lg">
-                <Share2 className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Product Info */}
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <h3 className="font-semibold">Product Information</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">SKU:</span>
-                    <span>{product.sku || product.id}</span>
+              
+              {/* Options Form */}
+              <form className="space-y-6">
+                {/* Color Selection */}
+                {product.colors && product.colors.length > 0 && (
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-sm font-medium text-slate-900 dark:text-white">Color</h3>
+                    </div>
+                    <div className="relative w-full sm:w-64">
+                      <select
+                        value={selectedColor}
+                        onChange={(e) => setSelectedColor(e.target.value)}
+                        className="block w-full pl-3 pr-10 py-3 text-base border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-lg bg-background dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm appearance-none cursor-pointer"
+                      >
+                        {product.colors.map((color) => (
+                          <option key={color} value={color}>{color}</option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                        <ChevronRight className="h-5 w-5 rotate-90" />
+                      </div>
+                    </div>
                   </div>
-                  {typeof product.category === 'object' && product.category?.name && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Category:</span>
-                      <span>{product.category.name}</span>
+                )}
+
+                {/* Size Selection */}
+                {product.sizes && product.sizes.length > 0 && (
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-sm font-medium text-slate-900 dark:text-white">Size</h3>
+                    </div>
+                    <div className="relative w-full sm:w-64">
+                      <select
+                        value={selectedSize}
+                        onChange={(e) => setSelectedSize(e.target.value)}
+                        className="block w-full pl-3 pr-10 py-3 text-base border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-lg bg-background dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm appearance-none cursor-pointer"
+                      >
+                        {product.sizes && product.sizes.length > 0 && (
+                          product.sizes.map((size) => (
+                            <option key={size} value={size}>{size}</option>
+                          ))
+                        )}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                        <ChevronRight className="h-5 w-5 rotate-90" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-200 dark:border-slate-700 mt-8">
+                  {/* Quantity */}
+                  <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg w-max bg-background dark:bg-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="px-3 py-3 text-slate-600 dark:text-slate-400 hover:text-primary focus:outline-none disabled:opacity-50"
+                      disabled={quantity <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-12 text-center border-none p-0 text-slate-900 dark:text-white bg-transparent focus:ring-0 text-sm font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="px-3 py-3 text-slate-600 dark:text-slate-400 hover:text-primary focus:outline-none"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Add to Cart */}
+                  <Button
+                    type="button"
+                    onClick={handleAddToCart}
+                    disabled={!product.inStock}
+                    className="flex-1 bg-primary hover:bg-red-600 text-white rounded-lg py-6 px-8 flex items-center justify-center text-base font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    <ShoppingCart className="mr-2 h-5 w-5" />
+                    Add to Cart
+                  </Button>
+
+                  {/* Share */}
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="flex-shrink-0 bg-background dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg p-3 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-primary hover:border-primary dark:hover:text-primary dark:hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-200"
+                  >
+                    <Share2 className="h-5 w-5" />
+                    <span className="sr-only">Share</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Product Details Tabs */}
+        {product && (
+          <section className="mt-10 pt-10 border-t border-slate-200 dark:border-slate-700">
+            <div className="border-b border-slate-200 dark:border-slate-700">
+              <nav aria-label="Tabs" className="-mb-px flex space-x-8 overflow-x-auto no-scrollbar">
+                <button
+                  onClick={() => setActiveTab('details')}
+                  className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'details'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'
+                  }`}
+                >
+                  Product Details
+                </button>
+                <button
+                  onClick={() => setActiveTab('specifications')}
+                  className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'specifications'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'
+                  }`}
+                >
+                  Specifications
+                </button>
+              </nav>
+            </div>
+
+            <div className="py-8 text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl">
+              {activeTab === 'details' && (
+                <>
+                  <p className="mb-4">
+                    {product.description}
+                  </p>
+                </>
+              )}
+              {activeTab === 'specifications' && (
+                <div className="space-y-3">
+                  <div className="flex justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                    <span className="font-medium text-slate-900 dark:text-white">SKU:</span>
+                    <span>{product.sku}</span>
+                  </div>
+                  {product.category && (
+                    <div className="flex justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                      <span className="font-medium text-slate-900 dark:text-white">Category:</span>
+                      <span>{typeof product.category === 'object' ? (product.category as any).name : product.category}</span>
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Available Sizes:</span>
-                    <span>{product.sizes?.join(", ") || "One Size"}</span>
+                  <div className="flex justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                    <span className="font-medium text-slate-900 dark:text-white">Available Colors:</span>
+                    <span>{product.colors?.join(', ')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Available Colors:</span>
-                    <span>{product.colors?.join(", ") || "Standard"}</span>
+                  <div className="flex justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                    <span className="font-medium text-slate-900 dark:text-white">Available Sizes:</span>
+                    <span>{product.sizes?.join(', ')}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div className="mt-16">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-2">Related Products</h2>
-              <p className="text-muted-foreground">More products from the same category</p>
-            </div>
+          <section className="mt-16 pt-10 border-t border-slate-200 dark:border-slate-700">
+            <h2 className="text-3xl font-display font-bold text-slate-900 dark:text-white mb-8">You Might Also Like</h2>
 
             {isLoadingRelated ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {[...Array(4)].map((_, index) => (
                   <div key={index} className="space-y-3">
-                    <Skeleton className="aspect-square rounded-lg" />
+                    <Skeleton className="aspect-[3/4] w-full rounded-lg" />
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
                   </div>
                 ))}
               </div>
-            ) : relatedProducts.length <= 4 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {relatedProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {relatedProducts.slice(0, 4).map((relatedProduct) => (
+                  <a
+                    key={relatedProduct.id}
+                    href={`/products/${relatedProduct.id}`}
+                    className="group block"
+                  >
+                    <div className="aspect-[3/4] w-full rounded-lg overflow-hidden bg-[#EFEDE6] dark:bg-slate-800 mb-3 relative">
+                      <img
+                        src={(relatedProduct.images && relatedProduct.images[0]) || '/placeholder.jpg'}
+                        alt={relatedProduct.name}
+                        className="w-full h-full object-cover transition duration-300 group-hover:opacity-90"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.jpg'
+                        }}
+                      />
+                    </div>
+                    <h3 className="text-sm sm:text-base font-medium text-slate-900 dark:text-white mb-1 group-hover:text-primary transition line-clamp-1">
+                      {relatedProduct.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-2">
+                      {typeof relatedProduct.category === 'object' ? (relatedProduct.category as any).name : relatedProduct.category || 'Collection'}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-base sm:text-lg font-bold text-primary">{formatPrice(relatedProduct.price)}</p>
+                      {relatedProduct.originalPrice && (
+                        <p className="text-xs sm:text-sm text-slate-500 line-through">
+                          {formatPrice(relatedProduct.originalPrice)}
+                        </p>
+                      )}
+                    </div>
+                  </a>
                 ))}
               </div>
-            ) : (
-              <Carousel
-                opts={{
-                  align: "start",
-                  loop: true,
-                }}
-                className="w-full"
-              >
-                <CarouselContent className="-ml-2 md:-ml-4">
-                  {relatedProducts.map((product) => (
-                    <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
-                      <ProductCard product={product} />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="-left-4" />
-                <CarouselNext className="-right-4" />
-              </Carousel>
             )}
-          </div>
+          </section>
         )}
-      </div>
+      </main>
 
       <Footer />
       <WhatsAppButton />

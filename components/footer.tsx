@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { Phone, Mail, MapPin, MessageCircle } from "lucide-react"
+import { Phone, Mail, MapPin, Twitter, Instagram } from "lucide-react"
 import { getSettings } from "@/app/admin/settings/actions"
 import type { SettingsFormData } from "@/app/admin/settings/actions"
+import Image from "next/image"
 
 export function Footer() {
   const [settings, setSettings] = useState<SettingsFormData | null>(null)
@@ -25,80 +25,97 @@ export function Footer() {
   }, [])
 
   return (
-    <footer className="bg-muted/50 border-t">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-slate-900 text-slate-300 py-20 pt-12 pb-8 border-t border-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-4">
           {/* Company Info */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Image src="/images/gd-logo.png" alt="GD Industries" width={32} height={32} className="h-8 w-8" />
-              <span className="text-lg font-bold">{settings?.storeName || "GD INDUSTRIES"}</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Your trusted partner for quality clothing and fashion accessories. Serving customers with style and
-              excellence since our inception.
-            </p>
-            {settings?.storeAddress && (
-              <div className="flex items-center space-x-2 text-sm">
-                <MapPin className="h-4 w-4 text-primary" />
-                <span>{settings.storeAddress}</span>
+          <div>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="flex items-center gap-4">
+                <Image src="/images/gd-logo.png" alt="GD Industries" width={40} height={40} className="rounded" />
+                <div>
+                  <h1 className="text-xl font-bold text-white">GD INDUSTRIES</h1>
+                </div>
               </div>
-            )}
+            </div>
+            <p className="text-slate-400 text-base leading-relaxed mb-8">
+              Your trusted partner for quality clothing and fashion accessories. Serving customers with style and excellence since our inception.
+            </p>
+            <div className="flex space-x-5">
+              <a 
+                href="#" 
+                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-primary transition-all text-white group"
+                aria-label="Twitter"
+              >
+                <Twitter className="h-5 w-5 transition-transform group-hover:scale-110" fill="currentColor" />
+              </a>
+              <a 
+                href="#" 
+                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-primary transition-all text-white group"
+                aria-label="Instagram"
+              >
+                <Instagram className="h-5 w-5 transition-transform group-hover:scale-110" />
+              </a>
+            </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Quick Links</h3>
-            <nav className="flex flex-col space-y-2">
-              <Link href="/products" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                All Products
-              </Link>
-              <Link href="/categories" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Categories
-              </Link>
-            </nav>
+          {/* Navigation */}
+          <div>
+            <h5 className="text-white font-bold mb-8 uppercase tracking-widest text-sm">Navigation</h5>
+            <ul className="space-y-4">
+              <li>
+                <Link href="/products" className="hover:text-primary transition-colors flex items-center gap-2">
+                  All Products
+                </Link>
+              </li>
+              <li>
+                <Link href="/categories" className="hover:text-primary transition-colors flex items-center gap-2">
+                  Categories
+                </Link>
+              </li>
+            </ul>
           </div>
 
           {/* Customer Service */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Customer Service</h3>
-            <nav className="flex flex-col space-y-2">
-              <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Contact Us
-              </Link>
-            </nav>
+          <div>
+            <h5 className="text-white font-bold mb-8 uppercase tracking-widest text-sm">Customer Service</h5>
+            <ul className="space-y-4">
+              <li>
+                <Link href="/contact" className="hover:text-primary transition-colors flex items-center gap-2">
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Get in Touch</h3>
-            <div className="space-y-3">
+          <div>
+            <h5 className="text-white font-bold mb-8 uppercase tracking-widest text-sm">Contact Info</h5>
+            <ul className="space-y-5 text-sm">
+              {settings?.storeAddress && (
+                <li className="flex items-start gap-4">
+                  <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{settings.storeAddress}</span>
+                </li>
+              )}
               {settings?.storePhone && (
-                <div className="flex items-center space-x-2 text-sm">
-                  <Phone className="h-4 w-4 text-primary" />
+                <li className="flex items-center gap-4">
+                  <Phone className="h-5 w-5 text-primary shrink-0" />
                   <span>{settings.storePhone}</span>
-                </div>
+                </li>
               )}
               {settings?.storeEmail && (
-                <div className="flex items-center space-x-2 text-sm">
-                  <Mail className="h-4 w-4 text-primary" />
+                <li className="flex items-center gap-4">
+                  <Mail className="h-5 w-5 text-primary shrink-0" />
                   <span>{settings.storeEmail}</span>
-                </div>
+                </li>
               )}
-              {settings?.whatsappNumber && (
-                <div className="flex items-center space-x-2 text-sm">
-                  <MessageCircle className="h-4 w-4 text-primary" />
-                  <span>WhatsApp Support</span>
-                </div>
-              )}
-            </div>
+            </ul>
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            © 2024 GD Industries. All rights reserved. | CEO: Gawtham Devadasa
-          </p>
+        <div className="border-t border-slate-800 pt-10 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+          <p>© 2026 GD Industries Private Limited. All Rights Reserved.</p>
         </div>
       </div>
     </footer>
