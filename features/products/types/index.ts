@@ -17,6 +17,7 @@ export interface Product {
   featured: boolean
   createdAt: Date
   updatedAt: Date
+  sku: string
 }
 
 export type ProductSize = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'XXXL'

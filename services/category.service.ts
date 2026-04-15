@@ -10,9 +10,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
  * Fetch all categories from API
  * By default, only fetches top-level parent categories
  */
-export async function getCategories(parentOnly: boolean = true): Promise<Category[]> {
+export async function getCategories(parentOnly: boolean = true, includeProductCount: boolean = false): Promise<Category[]> {
   try {
-    const url = `${API_BASE_URL}/api/categories${parentOnly ? '?parentOnly=true' : ''}`
+    const params = new URLSearchParams()
+    if (parentOnly) params.append('parentOnly', 'true')
+    if (includeProductCount) params.append('includeProducts', 'true')
+    
+    const url = `${API_BASE_URL}/api/categories${params.toString() ? '?' + params.toString() : ''}`
     const response = await fetch(url, {
       cache: 'no-store',
     })
@@ -22,7 +26,13 @@ export async function getCategories(parentOnly: boolean = true): Promise<Categor
     }
 
     const data = await response.json()
-    return data.categories || []
+    const categories = data.categories || []
+    
+    // Map _count.products to productCount
+    return categories.map((cat: any) => ({
+      ...cat,
+      productCount: cat._count?.products ?? 0
+    }))
   } catch (error) {
     console.error('Error in getCategories:', error)
     return []
