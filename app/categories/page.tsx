@@ -2,15 +2,12 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { WhatsAppButton } from "@/components/whatsapp-button"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Search } from "lucide-react"
+import { Search, ArrowRight } from "lucide-react"
 import { getCategories } from "@/services/category.service"
 import type { Category } from "@/features/categories/types"
 
@@ -43,75 +40,87 @@ export default function CategoriesPage() {
     )
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark">
       <Header />
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">Shop by Category</h1>
-          <p className="text-muted-foreground mb-6">
-            Browse our collection by category to find exactly what you're looking for
-          </p>
+      
+      <main className="max-w-7xl mx-auto px-6 py-12 md:py-20">
+        {/* Header Section */}
+        <div className="mb-16">
+          <h1 className="font-display text-4xl md:text-5xl font-medium mb-4 text-slate-900 dark:text-white">
+            Shop by Category
+          </h1>
 
-          {/* Search */}
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          {/* Search Bar */}
+          <div className="mt-8 flex items-center max-w-md bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 rounded-full px-4 py-1">
+            <Search className="text-slate-400 mr-2 h-5 w-5" />
             <Input
-              placeholder="Search categories..."
+              type="text"
+              placeholder="Search for a specific category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="flex-grow border-none bg-transparent focus:ring-0 text-sm py-2"
             />
           </div>
         </div>
 
         {/* Loading State */}
         {isLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <Skeleton key={i} className="aspect-square rounded-lg" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="aspect-[3/4] rounded-2xl" />
             ))}
           </div>
         )}
 
         {/* Categories Grid */}
-        {!isLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredCategories.map((category) => {
+        {!isLoading && filteredCategories.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {filteredCategories.map((category, index) => {
+              const isMiddle = index % 3 === 1
+              
               return (
-                <Link key={category.id} href={`/categories/${category.id}`}>
-                  <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105">
-                    <div className="relative aspect-square overflow-hidden">
-                      <Image
-                        src={category.image || "/placeholder.svg?height=300&width=300&query=fashion category"}
-                        alt={category.name}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors duration-300" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center text-white">
-                          <h3 className="text-xl font-bold mb-2">{category.name}</h3>
-                          {category.description && (
-                            <p className="text-sm opacity-90 mb-2 px-4">{category.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
+                <Link
+                  key={category.id}
+                  href={`/categories/${category.id}`}
+                  className={`category-card relative aspect-[3/4] overflow-hidden rounded-2xl group cursor-pointer shadow-lg ${
+                    isMiddle ? "md:-translate-y-8" : ""
+                  }`}
+                >
+                  <img
+                    src={category.image || `https://images.unsplash.com/photo-${
+                      index % 3 === 0 ? '1617137968633-0952680c483' : 
+                      index % 3 === 1 ? '1610030469983-98e550d6193c' : 
+                      '1503454537195-1dcabb73ffb9'
+                    }?w=600&h=800&fit=crop`}
+                    alt={category.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&h=800&fit=crop`
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                  <div className="absolute inset-0 flex flex-col justify-end p-8 transition-transform duration-500 group-hover:-translate-y-2">
+                    <h2 className="text-white text-3xl font-display mb-2">{category.name}</h2>
+                    <p className="text-slate-300 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 uppercase tracking-widest font-semibold">
+                      Explore Collection
+                    </p>
+                  </div>
                 </Link>
               )
             })}
           </div>
         )}
 
+        {/* No Results State */}
         {!isLoading && filteredCategories.length === 0 && (
           <div className="text-center py-12">
-            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No categories found</h3>
-            <p className="text-gray-600">Try adjusting your search terms</p>
+            <Search className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No categories found</h3>
+            <p className="text-slate-600 dark:text-slate-400">Try adjusting your search terms</p>
           </div>
         )}
-      </div>
+      </main>
+
       <Footer />
       <WhatsAppButton />
     </div>

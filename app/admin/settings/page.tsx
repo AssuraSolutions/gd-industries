@@ -190,13 +190,6 @@ export default function AdminSettingsPage() {
                     Enter your WhatsApp number with country code (e.g., +923001234567)
                   </p>
                 </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">WhatsApp Button Status</p>
-                    <p className="text-sm text-muted-foreground">Show floating WhatsApp button on website</p>
-                  </div>
-                  <Badge className="bg-green-500">Active</Badge>
-                </div>
                 <Button type="submit" disabled={isSaving}>
                   {isSaving ? "Saving..." : "Save Changes"}
                 </Button>

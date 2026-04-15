@@ -5,74 +5,74 @@
 
 :root {
   /* Updated color scheme to match GD Industries branding */
-  --background: oklch(1 0 0); /* White */
+  --background: oklch(0.976 0 0); /* #F4F4F4 - Sophisticated light grey */
   --foreground: oklch(0.3 0 0); /* Dark Gray */
-  --card: oklch(0.97 0 0); /* Light Gray */
+  --card: oklch(0.988 0 0); /* #F9F9F9 - Slightly lighter grey for cards */
   --card-foreground: oklch(0.3 0 0); /* Dark Gray */
   --popover: oklch(1 0 0); /* White */
   --popover-foreground: oklch(0.3 0 0); /* Dark Gray */
-  --primary: oklch(0.6 0.22 27); /* GD Red #EF4444 */
+  --primary: oklch(0.6 0.22 16); /* #E63946 - GD Red */
   --primary-foreground: oklch(1 0 0); /* White */
-  --secondary: oklch(0.55 0.15 264); /* GD Blue #5B5FD3 */
+  --secondary: oklch(0.4 0.02 250); /* #455A64 - GD Secondary Blue Gray */
   --secondary-foreground: oklch(1 0 0); /* White */
   --muted: oklch(0.97 0 0); /* Light Gray */
   --muted-foreground: oklch(0.5 0 0); /* Medium Gray */
-  --accent: oklch(0.65 0.25 330); /* Accent Pink #ec4899 */
+  --accent: oklch(0.28 0.05 240); /* #1D3557 - Dark Navy Accent */
   --accent-foreground: oklch(1 0 0); /* White */
-  --destructive: oklch(0.6 0.22 27); /* Red */
+  --destructive: oklch(0.6 0.22 16); /* Red */
   --destructive-foreground: oklch(1 0 0); /* White */
   --border: oklch(0.9 0 0); /* Light Border */
   --input: oklch(0.97 0 0); /* Light Input Background */
-  --ring: oklch(0.6 0.22 27 / 0.5); /* Red Ring */
+  --ring: oklch(0.6 0.22 16 / 0.5); /* Red Ring */
   --chart-1: oklch(0.55 0.15 264); /* Blue */
-  --chart-2: oklch(0.6 0.22 27); /* Red */
+  --chart-2: oklch(0.6 0.22 16); /* Red */
   --chart-3: oklch(0.65 0.25 330); /* Pink */
   --chart-4: oklch(0.5 0.15 150); /* Green */
   --chart-5: oklch(0.6 0.2 60); /* Orange */
   --radius: 0.5rem;
   --sidebar: oklch(0.97 0 0); /* Light Gray */
   --sidebar-foreground: oklch(0.3 0 0); /* Dark Gray */
-  --sidebar-primary: oklch(0.6 0.22 27); /* Red */
+  --sidebar-primary: oklch(0.6 0.22 16); /* Red */
   --sidebar-primary-foreground: oklch(1 0 0); /* White */
   --sidebar-accent: oklch(0.55 0.15 264); /* Blue */
   --sidebar-accent-foreground: oklch(1 0 0); /* White */
   --sidebar-border: oklch(0.9 0 0); /* Light Border */
-  --sidebar-ring: oklch(0.6 0.22 27 / 0.5); /* Red Ring */
+  --sidebar-ring: oklch(0.6 0.22 16 / 0.5); /* Red Ring */
 }
 
 .dark {
-  --background: oklch(0.1 0 0); /* Dark Background */
+  --background: oklch(0.15 0 0); /* #0F172A - Dark Background */
   --foreground: oklch(0.95 0 0); /* Light Text */
-  --card: oklch(0.15 0 0); /* Dark Card */
+  --card: oklch(0.2 0 0); /* #1E293B - Dark Card */
   --card-foreground: oklch(0.95 0 0); /* Light Text */
   --popover: oklch(0.15 0 0); /* Dark Popover */
   --popover-foreground: oklch(0.95 0 0); /* Light Text */
-  --primary: oklch(0.6 0.22 27); /* GD Red */
+  --primary: oklch(0.6 0.22 16); /* #E63946 - GD Red */
   --primary-foreground: oklch(1 0 0); /* White */
-  --secondary: oklch(0.55 0.15 264); /* GD Blue */
+  --secondary: oklch(0.4 0.02 250); /* #455A64 - GD Secondary */
   --secondary-foreground: oklch(1 0 0); /* White */
   --muted: oklch(0.2 0 0); /* Dark Muted */
   --muted-foreground: oklch(0.7 0 0); /* Light Muted Text */
-  --accent: oklch(0.65 0.25 330); /* Accent Pink */
+  --accent: oklch(0.28 0.05 240); /* #1D3557 - Dark Navy */
   --accent-foreground: oklch(1 0 0); /* White */
-  --destructive: oklch(0.6 0.22 27); /* Red */
+  --destructive: oklch(0.6 0.22 16); /* Red */
   --destructive-foreground: oklch(1 0 0); /* White */
   --border: oklch(0.25 0 0); /* Dark Border */
   --input: oklch(0.2 0 0); /* Dark Input */
-  --ring: oklch(0.6 0.22 27 / 0.5); /* Red Ring */
+  --ring: oklch(0.6 0.22 16 / 0.5); /* Red Ring */
   --chart-1: oklch(0.55 0.15 264); /* Blue */
-  --chart-2: oklch(0.6 0.22 27); /* Red */
+  --chart-2: oklch(0.6 0.22 16); /* Red */
   --chart-3: oklch(0.65 0.25 330); /* Pink */
   --chart-4: oklch(0.5 0.15 150); /* Green */
   --chart-5: oklch(0.6 0.2 60); /* Orange */
   --sidebar: oklch(0.15 0 0); /* Dark Sidebar */
   --sidebar-foreground: oklch(0.95 0 0); /* Light Text */
-  --sidebar-primary: oklch(0.6 0.22 27); /* Red */
+  --sidebar-primary: oklch(0.6 0.22 16); /* Red */
   --sidebar-primary-foreground: oklch(1 0 0); /* White */
   --sidebar-accent: oklch(0.55 0.15 264); /* Blue */
   --sidebar-accent-foreground: oklch(1 0 0); /* White */
   --sidebar-border: oklch(0.25 0 0); /* Dark Border */
-  --sidebar-ring: oklch(0.6 0.22 27 / 0.5); /* Red Ring */
+  --sidebar-ring: oklch(0.6 0.22 16 / 0.5); /* Red Ring */
 }
 
 @theme inline {
@@ -140,4 +140,56 @@
 .triangle-pattern {
   background-image: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.1) 2px, transparent 2px);
   background-size: 15px 15px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Font family for display text (Playfair Display) */
+.font-display {
+  font-family: var(--font-display), 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
+
+/* Product card hover effects */
+.product-card:hover .quick-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.quick-view {
+  opacity: 0;
+  transform: translateY(1rem);
+}
+
+/* Textured background for headers */
+.textured-bg {
+  background-image: 
+    linear-gradient(135deg, rgba(190, 30, 45, 0.03) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(190, 30, 45, 0.03) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(190, 30, 45, 0.03) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(190, 30, 45, 0.03) 25%, transparent 25%);
+  background-position: 10px 0, 10px 0, 0 0, 0 0;
+  background-size: 20px 20px;
+  background-repeat: repeat;
+}
+
+/* Category card hover effects */
+.category-card img {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category-card:hover img {
+  transform: scale(1.05);
 }
