@@ -3,15 +3,8 @@
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
-import { Search, ShoppingCart, Menu, X, ChevronDown, Moon, Sun } from "lucide-react"
+import { Search, ShoppingCart, Menu, X, ChevronDown, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
 import { useCart } from "@/components/providers/cart-provider"
 import { getCategories } from "@/services/category.service"
 import type { Category } from "@/features/categories/types"
@@ -22,6 +15,8 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("")
   const [categories, setCategories] = useState<Category[]>([])
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isMegaOpen, setIsMegaOpen] = useState(false)
+  const [activeParent, setActiveParent] = useState<string | null>(null)
   const { itemCount } = useCart()
   const router = useRouter()
   const pathname = usePathname()
@@ -115,44 +110,19 @@ export function Header() {
             >
               Products
             </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none ${
-                pathname?.startsWith('/categories') 
-                  ? 'text-primary' 
-                  : 'text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary'
-              }`}>
+            <div className="relative">
+              <button
+                onClick={() => setIsMegaOpen((v) => !v)}
+                className={`flex items-center gap-1 font-medium transition-colors outline-none ${
+                  pathname?.startsWith("/categories") || isMegaOpen
+                    ? "text-primary"
+                    : "text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary"
+                }`}
+              >
                 Categories
-                <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64 max-h-[400px] overflow-y-auto">
-                {parentCategories.map((category) => {
-                  const childCategories = getChildCategories(category.id)
-                  return (
-                    <div key={category.id}>
-                      <DropdownMenuItem asChild className="hover:bg-primary hover:text-white data-[highlighted]:bg-primary data-[highlighted]:text-white">
-                        <Link href={`/categories/${category.id}`} className="font-bold text-slate-900 dark:text-white">
-                          {category.name}
-                        </Link>
-                      </DropdownMenuItem>
-                      {childCategories.length > 0 && (
-                        <div className="bg-slate-50 dark:bg-slate-800/30 mx-2 mb-2 rounded-md">
-                          {childCategories.map((child) => (
-                            <DropdownMenuItem key={child.id} asChild className="pl-8 hover:bg-primary/90 hover:text-white data-[highlighted]:bg-primary/90 data-[highlighted]:text-white">
-                              <Link href={`/categories/${child.id}`} className="text-sm text-slate-600 dark:text-slate-400">
-                                {child.name}
-                              </Link>
-                            </DropdownMenuItem>
-                          ))}
-                        </div>
-                      )}
-                      {childCategories.length > 0 && category.id !== parentCategories[parentCategories.length - 1].id && (
-                        <DropdownMenuSeparator />
-                      )}
-                    </div>
-                  )
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isMegaOpen ? "rotate-180" : ""}`} />
+              </button>
+            </div>
             <Link 
               href="/contact" 
               className={`font-medium transition-colors ${
@@ -310,6 +280,124 @@ export function Header() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Overlay */}
+      {isMegaOpen && (
+        <div
+          className="fixed inset-0 top-20 bg-black/20 z-40"
+          onClick={() => setIsMegaOpen(false)}
+        />
+      )}
+
+      {/* Mega Menu Panel */}
+      <div
+        className={`absolute left-0 right-0 top-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-50 transition-all duration-200 ${
+          isMegaOpen
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 -translate-y-2 pointer-events-none"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex py-8 gap-0">
+
+            {/* Left sidebar — parent categories */}
+            <div className="w-56 flex-shrink-0 border-r border-slate-100 dark:border-slate-800">
+              {parentCategories.map((category) => (
+                <button
+                  key={category.id}
+                  onMouseEnter={() => setActiveParent(category.id)}
+                  onClick={() => {
+                    router.push(`/categories/${category.id}`)
+                    setIsMegaOpen(false)
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 mr-4 text-sm font-medium rounded-lg transition-all text-left ${
+                    activeParent === category.id
+                      ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                      : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <span>{category.name}</span>
+                  <ChevronRight className="h-3.5 w-3.5 opacity-40" />
+                </button>
+              ))}
+            </div>
+
+            {/* Right panel — children + featured card */}
+            <div className="flex-1 pl-8">
+              {parentCategories.map((category) => {
+                const children = getChildCategories(category.id)
+                return (
+                  <div
+                    key={category.id}
+                    className={activeParent === category.id ? "block" : "hidden"}
+                  >
+                    <div className="grid grid-cols-3 gap-x-8">
+                      {/* Child links — span 2 cols */}
+                      <div className="col-span-2">
+                        <p className="text-xs font-medium tracking-widest uppercase text-slate-400 mb-3">
+                          {category.name}
+                        </p>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                          {children.map((child) => (
+                            <Link
+                              key={child.id}
+                              href={`/categories/${child.id}`}
+                              onClick={() => setIsMegaOpen(false)}
+                              className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800/50 px-2 py-2 rounded-md transition-all"
+                            >
+                              {child.name}
+                            </Link>
+                          ))}
+                          <Link
+                            href={`/categories/${category.id}`}
+                            onClick={() => setIsMegaOpen(false)}
+                            className="text-sm font-medium text-primary px-2 py-2 col-span-2"
+                          >
+                            View all in {category.name} →
+                          </Link>
+                        </div>
+                      </div>
+
+                      {/* Featured card */}
+                      <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5 flex flex-col gap-2 self-start">
+                        <span className="text-xs font-medium tracking-widest uppercase text-slate-400">
+                          Featured
+                        </span>
+                        <p className="text-base font-semibold text-slate-900 dark:text-white">
+                          {category.name}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                          Browse our full range of {category.name.toLowerCase()} products from leading manufacturers.
+                        </p>
+                        <Link
+                          href={`/categories/${category.id}`}
+                          onClick={() => setIsMegaOpen(false)}
+                          className="text-xs font-medium text-primary mt-1"
+                        >
+                          Shop now →
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Footer quick links */}
+          <div className="flex gap-6 py-3.5 border-t border-slate-100 dark:border-slate-800">
+            <Link href="/products" onClick={() => setIsMegaOpen(false)} className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+              View all products
+            </Link>
+            <Link href="/products?sort=new" onClick={() => setIsMegaOpen(false)} className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+              New arrivals
+            </Link>
+            <Link href="/products?sort=popular" onClick={() => setIsMegaOpen(false)} className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+              Best sellers
+            </Link>
+          </div>
+        </div>
       </div>
     </nav>
   )
