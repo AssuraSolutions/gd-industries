@@ -142,9 +142,12 @@ export default function ProductPage({ params }: ProductPageProps) {
     toast.success("Added to cart", `${quantity} ${quantity > 1 ? 'items' : 'item'} added to your cart`)
   }
 
-  const formatPrice = (price: number) => {
-    return `Rs. ${price.toLocaleString()}`
-  }
+  const formatPrice = (price: number | null | undefined) => {
+      return `LKR ${Number(price || 0).toLocaleString('en-LK', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+      })}`;
+  };
 
   const handleShare = async () => {
     if (!product) return
@@ -264,7 +267,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
               {/* Main Image */}
               <div className="flex-1">
-                <div className="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-[#EFEDE6] dark:bg-slate-800 relative group shadow-sm">
+                <div className="aspect-[4/5] w-full rounded-2xl overflow-hidden bg-[#EFEDE6] dark:bg-slate-800 relative group shadow-sm">
                   <img
                     src={(product.images && product.images.length > 0 ? product.images[selectedImage] : '/placeholder.jpg') || '/placeholder.jpg'}
                     alt={product.name}
@@ -303,7 +306,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               {/* Price */}
               <div className="mb-4 border-b border-slate-200 dark:border-slate-700 pb-8">
                 <div className="flex items-end gap-3">
-                  <p className="text-2xl font-bold text-primary">{formatPrice(product.price)}</p>
+                  <p className="text-xl font-bold text-primary">{formatPrice(product.price)}</p>
                   {product.originalPrice && (
                     <>
                       <p className="text-lg text-slate-500 line-through mb-1">
@@ -506,7 +509,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                     href={`/products/${relatedProduct.id}`}
                     className="group block"
                   >
-                    <div className="aspect-[3/4] w-full rounded-lg overflow-hidden bg-[#EFEDE6] dark:bg-slate-800 mb-3 relative">
+                    <div className="aspect-[1/1] w-full rounded-lg overflow-hidden bg-[#EFEDE6] dark:bg-slate-800 mb-3 relative">
                       <img
                         src={(relatedProduct.images && relatedProduct.images[0]) || '/placeholder.jpg'}
                         alt={relatedProduct.name}
@@ -523,7 +526,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                       {typeof relatedProduct.category === 'object' ? (relatedProduct.category as any).name : relatedProduct.category || 'Collection'}
                     </p>
                     <div className="flex items-center gap-2">
-                      <p className="text-base sm:text-lg font-bold text-primary">{formatPrice(relatedProduct.price)}</p>
+                      <p className="text-base sm:text-sm font-bold text-primary">{formatPrice(relatedProduct.price)}</p>
                       {relatedProduct.originalPrice && (
                         <p className="text-xs sm:text-sm text-slate-500 line-through">
                           {formatPrice(relatedProduct.originalPrice)}

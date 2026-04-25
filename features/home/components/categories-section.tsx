@@ -60,9 +60,9 @@ export function CategoriesSection() {
   return (
     <section className="py-24 bg-background dark:bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between mb-16">
+        <div className="flex justify-between mb-5">
           <div>
-            <h2 className="text-3xl lg:text-4xl font-display font-bold text-slate-900 dark:text-white mb-4">
+            <h2 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-4">
               Featured Collections
             </h2>
           </div>
@@ -79,7 +79,7 @@ export function CategoriesSection() {
             <Link 
               key={category.id} 
               href={`/categories/${category.id}`}
-              className={`group relative overflow-hidden rounded-2xl aspect-[4/5] md:aspect-[3/4] ${index === 1 ? 'md:mt-12' : ''} shadow-xl`}
+              className={`group relative overflow-hidden rounded-2xl aspect-[5/6] md:aspect-[6/7] ${index === 1 ? 'md:mt-12' : ''} shadow-xl`}
             >
               <div className="relative w-full h-full">
                 {category.image ? (

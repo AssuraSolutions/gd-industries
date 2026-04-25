@@ -265,6 +265,13 @@ export default function ProductsClient({ products: initialProducts, categories }
         setUploadedImages([])
     }
 
+    const formatPrice = (price: number | null | undefined) => {
+        return `LKR ${Number(price || 0).toLocaleString('en-LK', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
@@ -469,11 +476,11 @@ export default function ProductsClient({ products: initialProducts, categories }
                         <table className="w-full">
                             <thead className="border-b bg-muted/50">
                                 <tr>
-                                    <th className="text-left p-4 font-medium">Product</th>
-                                    <th className="text-left p-4 font-medium">Category</th>
-                                    <th className="text-left p-4 font-medium">Price</th>
-                                    <th className="text-left p-4 font-medium">Stock</th>
-                                    <th className="text-left p-4 font-medium">Actions</th>
+                                    <th className="text-center p-4 font-medium">Product</th>
+                                    <th className="text-center p-4 font-medium">Category</th>
+                                    <th className="text-center p-4 font-medium">Price</th>
+                                    <th className="text-center p-4 font-medium">Stock</th>
+                                    <th className="text-center p-4 font-medium">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -502,7 +509,7 @@ export default function ProductsClient({ products: initialProducts, categories }
                                                 </div>
                                             </td>
                                             <td className="p-4">{product.category.name}</td>
-                                            <td className="p-4 font-medium">Rs. {product.price.toLocaleString()}</td>
+                                            <td className="p-4 font-medium text-right">{formatPrice(product.price)}</td>
                                             <td className="p-4">
                                                 <Badge variant={product.inStock ? "default" : "destructive"}>
                                                     {product.inStock ? "In Stock" : "Out of Stock"}
