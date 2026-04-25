@@ -46,6 +46,13 @@ export function FeaturedProductsSection() {
     }
   }
 
+  const formatPrice = (price: number | null | undefined) => {
+      return `LKR ${Number(price || 0).toLocaleString('en-LK', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+      })}`;
+  };
+
   if (isLoading) {
     return (
       <section className="py-24 bg-[#EFEFEF] dark:bg-card border-t border-slate-200 dark:border-slate-800">
@@ -75,7 +82,7 @@ export function FeaturedProductsSection() {
     <section className="py-24 bg-[#EFEFEF] dark:bg-card border-t border-slate-200 dark:border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-12">
-          <h2 className="text-3xl font-display font-bold text-slate-900 dark:text-white">
+          <h2 className="text-2xl font-display font-bold text-slate-900 dark:text-white">
             Season's Highlights
           </h2>
           <div className="flex gap-3">
@@ -103,10 +110,10 @@ export function FeaturedProductsSection() {
               className="min-w-[250px] md:min-w-[280px] snap-center bg-white dark:bg-slate-800 rounded-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border border-slate-200 dark:border-slate-700"
             >
               <Link href={`/products/${product.id}`}>
-                <div className="relative aspect-[3/4] overflow-hidden">
+                <div className="relative aspect-[1/1] overflow-hidden">
                   {product.originalPrice && product.originalPrice > product.price && (
                     <span className="absolute top-4 left-4 z-10 bg-primary text-white text-[10px] uppercase tracking-tighter font-bold px-2 py-1 rounded">
-                      Sale -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                      Sale -{formatPrice(product.originalPrice - product.price)}
                     </span>
                   )}
                   <div className="relative w-full h-full">
@@ -125,21 +132,21 @@ export function FeaturedProductsSection() {
                     )}
                   </div>
                 </div>
-                <div className="p-6">
+                <div className="p-4">
                   <h3 className="font-bold text-slate-900 dark:text-white mb-1 line-clamp-1">
                     {product.name}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-1">
                     {product.description || 'Premium Quality'}
                   </p>
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
                     <div className="flex flex-col">
-                      <span className="text-xl font-bold text-slate-900 dark:text-white">
-                        Rs. {product.price.toLocaleString()}
+                      <span className="text-sm font-bold text-slate-900 dark:text-white">
+                        {formatPrice(product.price)}
                       </span>
                       {product.originalPrice && (
                         <span className="text-xs text-slate-400 dark:text-slate-500 line-through">
-                          Rs. {product.originalPrice.toLocaleString()}
+                          {formatPrice(product.originalPrice)}
                         </span>
                       )}
                     </div>

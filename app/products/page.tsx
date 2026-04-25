@@ -106,9 +106,12 @@ export default function ProductsPage() {
   const displayedStart = (currentPage - 1) * productsPerPage + 1
   const displayedEnd = Math.min(currentPage * productsPerPage, totalProducts)
 
-  const formatPrice = (price: number) => {
-    return `Rs. ${price.toLocaleString()}`
-  }
+  const formatPrice = (price: number | null | undefined) => {
+      return `LKR ${Number(price || 0).toLocaleString('en-LK', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+      })}`;
+  };
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark">
@@ -116,7 +119,7 @@ export default function ProductsPage() {
 
       {/* Page Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-display font-bold mb-2 text-slate-900 dark:text-white">Premium Collection</h1>
+        <h1 className="text-2xl font-display font-bold mb-2 text-slate-900 dark:text-white">Premium Collection</h1>
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
@@ -318,11 +321,11 @@ export default function ProductsPage() {
                         <div className="flex items-center justify-between">
                           {product.originalPrice ? (
                             <div className="flex flex-col">
-                              <span className="text-xl font-bold text-slate-900 dark:text-white">{formatPrice(product.price)}</span>
+                              <span className="text-sm font-bold text-slate-900 dark:text-white">{formatPrice(product.price)}</span>
                               <span className="text-xs text-slate-400 line-through">{formatPrice(product.originalPrice)}</span>
                             </div>
                           ) : (
-                            <span className="text-xl font-bold text-slate-900 dark:text-white">{formatPrice(product.price)}</span>
+                            <span className="text-sm font-bold text-slate-900 dark:text-white">{formatPrice(product.price)}</span>
                           )}
                         </div>
                       </div>

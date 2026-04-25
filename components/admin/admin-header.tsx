@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { LogOut, User } from "lucide-react"
 import Image from "next/image"
 
@@ -12,7 +13,9 @@ export function AdminHeader() {
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Image src="/images/gd-logo.png" alt="GD Industries" width={40} height={40} className="rounded" />
+          <Link href="/admin" className="flex items-center gap-4">
+            <Image src="/images/gd-logo.png" alt="GD Industries" width={40} height={40} className="rounded" />
+          </Link>
           <div>
             <h1 className="text-xl font-bold text-gray-900">GD Industries</h1>
             <p className="text-sm text-gray-500">Admin Panel</p>

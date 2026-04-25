@@ -49,6 +49,13 @@ export default function CartPage() {
     }
   }
 
+  const formatPrice = (price: number | null | undefined) => {
+      return `LKR ${Number(price || 0).toLocaleString('en-LK', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+      })}`;
+  };
+
   const handleWhatsAppCheckout = () => {
     const phoneNumber = "923001234567" // Replace with your actual WhatsApp business number
 
@@ -188,10 +195,10 @@ export default function CartPage() {
                   {/* Subtotal */}
                   <div className="col-span-5 md:col-span-3 text-right mt-4 md:mt-0">
                     <p className="text-sm font-bold text-slate-900 dark:text-white">
-                      Rs. {(item.price * item.quantity).toLocaleString()}
+                      {formatPrice(item.price * item.quantity)}
                     </p>
                     <p className="text-[10px] text-slate-400">
-                      Rs. {item.price.toLocaleString()} / unit
+                      {formatPrice(item.price)} per unit
                     </p>
                   </div>
 
@@ -219,12 +226,12 @@ export default function CartPage() {
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span className="text-sm font-medium">Subtotal ({cartItems.length} {cartItems.length === 1 ? "item" : "items"})</span>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white">Rs. {subtotal.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white">{formatPrice(subtotal)}</span>
                 </div>
                 
                 <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
                   <span className="text-lg font-black text-slate-900 dark:text-white">Total</span>
-                  <span className="text-2xl font-black text-primary">Rs. {total.toLocaleString()}</span>
+                  <span className="text-2xl font-black text-primary">{formatPrice(total)}</span>
                 </div>
               </div>
 
