@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model for admin authentication
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -21,7 +17,6 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
-// Category model with parent-child relationship
 model Category {
   id            String     @id @default(cuid())
   name          String
@@ -29,17 +24,18 @@ model Category {
   description   String?
   image         String?
   parentId      String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  publish       Boolean    @default(true)
   parent        Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
   subcategories Category[] @relation("CategoryToCategory")
   products      Product[]
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
 
   @@index([parentId])
   @@index([slug])
+  @@index([publish])
 }
 
-// Product model
 model Product {
   id            String      @id @default(cuid())
   name          String
@@ -48,7 +44,6 @@ model Product {
   price         Float
   originalPrice Float?
   categoryId    String
-  category      Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   images        String[]
   sizes         String[]
   colors        String[]
@@ -56,37 +51,36 @@ model Product {
   featured      Boolean     @default(false)
   stockCount    Int         @default(0)
   sku           String?     @unique
-  orderItems    OrderItem[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  publish       Boolean     @default(true)
+  orderItems    OrderItem[]
+  category      Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([categoryId])
   @@index([slug])
   @@index([featured])
   @@index([inStock])
+  @@index([publish])
 }
 
-// Customer model
 model Customer {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
   phone     String
-  orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  orders    Order[]
 
   @@index([email])
   @@index([phone])
 }
 
-// Order model
 model Order {
   id              String      @id @default(cuid())
   orderNumber     String      @unique
   customerId      String
-  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  items           OrderItem[]
   subtotal        Float
   shipping        Float
   total           Float
@@ -101,6 +95,8 @@ model Order {
   notes           String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
 
   @@index([customerId])
   @@index([orderNumber])
@@ -108,13 +104,10 @@ model Order {
   @@index([createdAt])
 }
 
-// Order Item model
 model OrderItem {
   id        String   @id @default(cuid())
   orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   name      String
   price     Float
   size      String
@@ -122,53 +115,51 @@ model OrderItem {
   quantity  Int
   subtotal  Float
   createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([productId])
 }
 
-// Offer model
 model Offer {
-  id                    String       @id @default(cuid())
-  title                 String
-  description           String
-  code                  String       @unique
-  discountType          DiscountType
-  discountValue         Float
-  minOrderValue         Float?
-  maxDiscount           Float?
-  validFrom             DateTime
-  validTo               DateTime
-  isActive              Boolean      @default(true)
-  usageLimit            Int?
-  usageCount            Int          @default(0)
-  applicableCategories  String[]
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
+  id                   String       @id @default(cuid())
+  title                String
+  description          String
+  code                 String       @unique
+  discountType         DiscountType
+  discountValue        Float
+  minOrderValue        Float?
+  maxDiscount          Float?
+  validFrom            DateTime
+  validTo              DateTime
+  isActive             Boolean      @default(true)
+  usageLimit           Int?
+  usageCount           Int          @default(0)
+  applicableCategories String[]
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
   @@index([code])
   @@index([isActive])
   @@index([validFrom, validTo])
 }
 
-// Settings model for store configuration
 model Settings {
-  id                  String   @id @default(cuid())
-  storeName           String   @default("GD INDUSTRIES")
-  storeEmail          String
-  storePhone          String
-  whatsappNumber      String
-  storeAddress        String?
-  currency            String   @default("LKR")
-  currencySymbol      String   @default("Rs.")
-
-  logoUrl             String?
-  faviconUrl          String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id             String   @id @default(cuid())
+  storeName      String   @default("GD INDUSTRIES")
+  storeEmail     String
+  storePhone     String
+  whatsappNumber String
+  storeAddress   String?
+  currency       String   @default("LKR")
+  currencySymbol String   @default("Rs.")
+  logoUrl        String?
+  faviconUrl     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
-// Enums
 enum OrderStatus {
   PENDING
   PROCESSING

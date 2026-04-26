@@ -14,7 +14,9 @@ export async function GET(request: Request) {
     const includeProducts = searchParams.get('includeProducts')
 
     // Build where clause
-    const where: any = {}
+    const where: any = {
+      publish: true,
+    }
 
     // Filter for parent categories only (top-level)
     if (parentOnly === 'true') {
@@ -26,18 +28,33 @@ export async function GET(request: Request) {
       include: {
         parent: true,
         subcategories: includeProducts === 'true' ? {
+          where: {
+            publish: true,
+          },
           include: {
             _count: {
               select: {
-                products: true,
+                products: {
+                  where: {
+                    publish: true,
+                  },
+                },
               },
             },
           },
-        } : true,
+        } : {
+          where: {
+            publish: true,
+          },
+        },
         ...(includeProducts === 'true' && {
           _count: {
             select: {
-              products: true,
+              products: {
+                where: {
+                  publish: true,
+                },
+              },
             },
           },
         }),

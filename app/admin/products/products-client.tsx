@@ -18,11 +18,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { Plus, Edit, Trash2, Eye, Upload } from "lucide-react"
-import { createProduct, deleteProduct, updateProduct, type CreateProductInput } from "./actions"
+import { createProduct, deleteProduct, updateProduct, toggleProductPublish, type CreateProductInput } from "./actions"
 import { toast } from "@/lib/toast"
-import type { Product, Category } from "@prisma/client"
+import type { Product } from "@/lib/types"
+import type { Category } from "@/lib/types"
+import { Switch } from "@/components/ui/switch"
 
 type ProductWithCategory = Product & {
+    publish: boolean
     category: Category
 }
 
@@ -55,6 +58,7 @@ export default function ProductsClient({ products: initialProducts, categories }
         colors: [],
         inStock: true,
         featured: false,
+        publish: true,
         stockCount: 0,
         sku: "",
     })
@@ -101,6 +105,7 @@ export default function ProductsClient({ products: initialProducts, categories }
                 colors,
                 inStock: formData.inStock ?? true,
                 featured: formData.featured ?? false,
+                publish: formData.publish ?? true,
                 stockCount: formData.stockCount || 0,
                 sku: formData.sku && formData.sku.trim() !== "" ? formData.sku : undefined,
             }
@@ -153,6 +158,25 @@ export default function ProductsClient({ products: initialProducts, categories }
         setProductToDelete(null)
     }
 
+    const handleTogglePublish = async (id: string) => {
+        try {
+            const result = await toggleProductPublish(id)
+
+            if (result.success && result.product) {
+                toast.success("Success", `Product ${result.product.publish ? "published" : "unpublished"} successfully`)
+                setProducts((prevProducts) =>
+                    prevProducts.map((p) =>
+                        p.id === id ? (result.product as ProductWithCategory) : p
+                    )
+                )
+            } else {
+                toast.error("Error", result.error || "Failed to update publish status")
+            }
+        } catch (error) {
+            toast.error("Error", "An unexpected error occurred")
+        }
+    }
+
     const handleViewProduct = (product: ProductWithCategory) => {
         setSelectedProduct(product)
         setViewDialogOpen(true)
@@ -171,6 +195,7 @@ export default function ProductsClient({ products: initialProducts, categories }
             colors: product.colors,
             inStock: product.inStock,
             featured: product.featured,
+            publish: product.publish,
             stockCount: product.stockCount,
             sku: product.sku || "",
         })
@@ -219,6 +244,7 @@ export default function ProductsClient({ products: initialProducts, categories }
                 colors,
                 inStock: formData.inStock ?? true,
                 featured: formData.featured ?? false,
+                publish: formData.publish ?? true,
                 stockCount: formData.stockCount || 0,
                 sku: formData.sku && formData.sku.trim() !== "" ? formData.sku : undefined,
             }
@@ -257,6 +283,7 @@ export default function ProductsClient({ products: initialProducts, categories }
             colors: [],
             inStock: true,
             featured: false,
+            publish: true,
             stockCount: 0,
             sku: "",
         })
@@ -273,10 +300,10 @@ export default function ProductsClient({ products: initialProducts, categories }
     };
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold mb-2">Product Management</h1>
+                    <h1 className="text-2xl font-bold mb-2">Product Management</h1>
                     <p className="text-muted-foreground">Manage your product inventory</p>
                 </div>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -450,6 +477,16 @@ export default function ProductsClient({ products: initialProducts, categories }
                                 />
                                 <Label htmlFor="featured">Featured Product</Label>
                             </div>
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="publish"
+                                    checked={formData.publish}
+                                    onChange={(e) => setFormData({ ...formData, publish: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <Label htmlFor="publish">Published</Label>
+                            </div>
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button
@@ -480,6 +517,7 @@ export default function ProductsClient({ products: initialProducts, categories }
                                     <th className="text-center p-4 font-medium">Category</th>
                                     <th className="text-center p-4 font-medium">Price</th>
                                     <th className="text-center p-4 font-medium">Stock</th>
+                                    <th className="text-center p-4 font-medium">Publish</th>
                                     <th className="text-center p-4 font-medium">Actions</th>
                                 </tr>
                             </thead>
@@ -519,6 +557,19 @@ export default function ProductsClient({ products: initialProducts, categories }
                                                         Featured
                                                     </Badge>
                                                 )}
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <Switch
+                                                    className="
+                                                        data-[state=checked]:bg-black 
+                                                        data-[state=unchecked]:bg-gray-300
+                                                        cursor-pointer 
+                                                        transition-transform 
+                                                        active:scale-95
+                                                    "
+                                                    checked={product.publish}
+                                                    onCheckedChange={() => handleTogglePublish(product.id)}
+                                                />
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex space-x-2">
@@ -717,6 +768,16 @@ export default function ProductsClient({ products: initialProducts, categories }
                                 className="rounded"
                             />
                             <Label htmlFor="edit-featured">Featured Product</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="edit-publish"
+                                checked={formData.publish}
+                                onChange={(e) => setFormData({ ...formData, publish: e.target.checked })}
+                                className="rounded"
+                            />
+                            <Label htmlFor="edit-publish">Published</Label>
                         </div>
                     </div>
                     <div className="flex justify-end gap-2">

@@ -19,8 +19,15 @@ export async function GET(
     const { id } = await params
 
     // First, check if the category exists
-    const category = await prisma.category.findUnique({
-      where: { id },
+    const category = await prisma.category.findFirst({
+      where: {
+        id,
+        publish: true,
+        OR: [
+          { parentId: null },
+          { parent: { publish: true } },
+        ],
+      },
     })
 
     if (!category) {
@@ -32,7 +39,7 @@ export async function GET(
 
     // Find all child categories (where parentId equals this category ID)
     const childCategories = await prisma.category.findMany({
-      where: { parentId: id },
+      where: { parentId: id, publish: true },
       select: { id: true },
     })
 
@@ -42,8 +49,16 @@ export async function GET(
     // Get all products that belong to these categories
     const products = await prisma.product.findMany({
       where: {
+        publish: true,
         categoryId: {
           in: categoryIds,
+        },
+        category: {
+          publish: true,
+          OR: [
+            { parentId: null },
+            { parent: { publish: true } },
+          ],
         },
       },
       include: {

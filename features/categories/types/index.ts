@@ -11,6 +11,7 @@ export interface Category {
   parentId?: string
   slug?: string
   productCount?: number
+  publish?: boolean
 }
 
 export interface CategoryWithProducts extends Category {

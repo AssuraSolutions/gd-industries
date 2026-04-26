@@ -13,6 +13,14 @@ export async function GET() {
       where: {
         featured: true,
         inStock: true, // Only show in-stock featured products
+        publish: true,
+        category: {
+          publish: true,
+          OR: [
+            { parentId: null },
+            { parent: { publish: true } },
+          ],
+        },
       },
       include: {
         category: true,

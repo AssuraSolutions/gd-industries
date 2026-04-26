@@ -20,13 +20,22 @@ export async function GET(request: Request) {
     const sortBy = searchParams.get('sortBy')
 
     // Build where clause
-    const where: any = {}
+    const where: any = {
+      publish: true,
+      category: {
+        publish: true,
+        OR: [
+          { parentId: null },
+          { parent: { publish: true } },
+        ],
+      },
+    }
 
     // Category filtering with parent-child support
     if (categoryId && categoryId !== 'all') {
       // First check if this category is a parent
       const childCategories = await prisma.category.findMany({
-        where: { parentId: categoryId },
+        where: { parentId: categoryId, publish: true },
         select: { id: true },
       })
 
