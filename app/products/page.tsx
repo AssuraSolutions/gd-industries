@@ -15,6 +15,7 @@ import type { Category } from "@/features/categories/types"
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
+  const searchQuery = searchParams.get('search')?.trim() || ''
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -30,6 +31,10 @@ export default function ProductsPage() {
   const [sortExpanded, setSortExpanded] = useState(false)
   
   const productsPerPage = 20
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery])
 
   // Load categories once
   useEffect(() => {
@@ -51,6 +56,7 @@ export default function ProductsPage() {
       try {
         const response = await getProducts({
           categoryId: selectedCategories.length === 1 ? selectedCategories[0] : undefined,
+          search: searchQuery || undefined,
           sortBy: sortBy,
           limit: productsPerPage,
           page: currentPage,
@@ -78,7 +84,7 @@ export default function ProductsPage() {
     }
 
     loadProducts()
-  }, [selectedCategories, sortBy, currentPage, inStockOnly])
+  }, [selectedCategories, sortBy, currentPage, inStockOnly, searchQuery])
 
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories(prev => 
@@ -120,6 +126,11 @@ export default function ProductsPage() {
       {/* Page Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-display font-bold mb-2 text-slate-900 dark:text-white">Premium Collection</h1>
+        {searchQuery && (
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Search results for "<span className="font-semibold text-slate-900 dark:text-slate-100">{searchQuery}</span>"
+          </p>
+        )}
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
