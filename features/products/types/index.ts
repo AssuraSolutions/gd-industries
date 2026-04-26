@@ -15,6 +15,7 @@ export interface Product {
   colors: string[]
   inStock: boolean
   featured: boolean
+  publish?: boolean
   createdAt: Date
   updatedAt: Date
   sku: string

@@ -16,6 +16,7 @@ const createProductSchema = z.object({
   colors: z.array(z.string()).default([]),
   inStock: z.boolean().default(true),
   featured: z.boolean().default(false),
+  publish: z.boolean().default(true),
   stockCount: z.number().int().min(0).default(0),
   sku: z.string().nullable().optional(),
 })
@@ -121,6 +122,7 @@ export async function createProduct(data: CreateProductInput) {
         colors: validatedData.colors,
         inStock: validatedData.inStock,
         featured: validatedData.featured,
+        publish: validatedData.publish,
         stockCount: validatedData.stockCount,
         sku,
       },
@@ -226,6 +228,47 @@ export async function deleteProduct(id: string) {
     return {
       success: false,
       error: 'Failed to delete product. Please try again.',
+    }
+  }
+}
+
+export async function toggleProductPublish(id: string) {
+  try {
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
+      select: { id: true, publish: true },
+    })
+
+    if (!existingProduct) {
+      return {
+        success: false,
+        error: 'Product not found.',
+      }
+    }
+
+    const product = await prisma.product.update({
+      where: { id },
+      data: {
+        publish: !existingProduct.publish,
+      },
+      include: {
+        category: true,
+      },
+    })
+
+    revalidatePath('/admin/products')
+    revalidatePath('/products')
+    revalidatePath(`/products/${id}`)
+
+    return {
+      success: true,
+      product,
+    }
+  } catch (error) {
+    console.error('Error toggling product publish status:', error)
+    return {
+      success: false,
+      error: 'Failed to update publish status. Please try again.',
     }
   }
 }

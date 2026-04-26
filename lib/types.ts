@@ -11,6 +11,7 @@ export interface Product {
   colors: string[]
   inStock: boolean
   featured: boolean
+  publish?: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -22,6 +23,7 @@ export interface Category {
   image: string
   subcategories: string[]
   parentId?: string // For child categories
+  publish?: boolean
 }
 
 export interface CartItem {

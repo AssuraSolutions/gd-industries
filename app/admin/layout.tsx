@@ -37,10 +37,18 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AdminHeader />
-      <AdminSidebar />
-      <main className="pt-1 pl-64">{children}</main>
+    <div className="h-screen bg-background overflow-hidden">
+      <div className="fixed top-0 left-0 right-0 z-50 h-16">
+        <AdminHeader />
+      </div>
+  
+      <div className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 z-40">
+        <AdminSidebar />
+      </div>
+  
+      <main className="ml-64 mt-16 h-[calc(100vh-4rem)] overflow-y-auto p-4">
+        {children}
+      </main>
     </div>
   )
 }

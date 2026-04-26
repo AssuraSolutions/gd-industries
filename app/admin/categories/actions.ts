@@ -4,12 +4,24 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
+const categoryAdminInclude = {
+  parent: true,
+  subcategories: true,
+  _count: {
+    select: {
+      products: true,
+      subcategories: true,
+    },
+  },
+} as const
+
 // Validation schema for category creation
 const createCategorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
   description: z.string().optional().nullable(),
   image: z.string().optional().nullable(),
   parentId: z.string().optional().nullable(),
+  publish: z.boolean().default(true),
 })
 
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>
@@ -45,11 +57,9 @@ export async function createCategory(data: CreateCategoryInput) {
         description: validatedData.description || null,
         image: validatedData.image || null,
         parentId: validatedData.parentId || null,
+        publish: validatedData.publish,
       },
-      include: {
-        parent: true,
-        subcategories: true,
-      },
+      include: categoryAdminInclude,
     })
 
     // Revalidate the categories page
@@ -110,10 +120,7 @@ export async function updateCategory(id: string, data: Partial<CreateCategoryInp
         ...data,
         ...(slug && { slug }),
       },
-      include: {
-        parent: true,
-        subcategories: true,
-      },
+      include: categoryAdminInclude,
     })
 
     revalidatePath('/admin/categories')
@@ -178,19 +185,49 @@ export async function deleteCategory(id: string) {
   }
 }
 
+export async function toggleCategoryPublish(id: string) {
+  try {
+    const existingCategory = await prisma.category.findUnique({
+      where: { id },
+      select: { id: true, publish: true },
+    })
+
+    if (!existingCategory) {
+      return {
+        success: false,
+        error: 'Category not found.',
+      }
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: {
+        publish: !existingCategory.publish,
+      },
+      include: categoryAdminInclude,
+    })
+
+    revalidatePath('/admin/categories')
+    revalidatePath('/categories')
+    revalidatePath(`/categories/${id}`)
+
+    return {
+      success: true,
+      category,
+    }
+  } catch (error) {
+    console.error('Error toggling category publish status:', error)
+    return {
+      success: false,
+      error: 'Failed to update publish status. Please try again.',
+    }
+  }
+}
+
 export async function getCategories() {
   try {
     const categories = await prisma.category.findMany({
-      include: {
-        parent: true,
-        subcategories: true,
-        _count: {
-          select: {
-            products: true,
-            subcategories: true,
-          },
-        },
-      },
+      include: categoryAdminInclude,
       orderBy: {
         createdAt: 'desc',
       },

@@ -14,35 +14,29 @@ export async function GET(
   try {
     const { id } = await params
 
-    // Try to find by ID first, then by slug
-    let category = await prisma.category.findUnique({
-      where: { id },
+    const category = await prisma.category.findFirst({
+      where: {
+        publish: true,
+        OR: [{ id }, { slug: id }],
+      },
       include: {
         parent: true,
-        subcategories: true,
+        subcategories: {
+          where: {
+            publish: true,
+          },
+        },
         _count: {
           select: {
-            products: true,
+            products: {
+              where: {
+                publish: true,
+              },
+            },
           },
         },
       },
     })
-
-    // If not found by ID, try slug
-    if (!category) {
-      category = await prisma.category.findUnique({
-        where: { slug: id },
-        include: {
-          parent: true,
-          subcategories: true,
-          _count: {
-            select: {
-              products: true,
-            },
-          },
-        },
-      })
-    }
 
     if (!category) {
       return NextResponse.json(

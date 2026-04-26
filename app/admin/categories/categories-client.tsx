@@ -18,13 +18,28 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { Plus, Edit, Trash2, Eye, Folder, FolderTree } from "lucide-react"
-import { createCategory, deleteCategory, updateCategory, type CreateCategoryInput } from "./actions"
+import { createCategory, deleteCategory, updateCategory, toggleCategoryPublish, type CreateCategoryInput } from "./actions"
 import { toast } from "@/lib/toast"
-import type { Category } from "@prisma/client"
+import { Switch } from "@/components/ui/switch"
 
-type CategoryWithRelations = Category & {
-    parent: Category | null
-    subcategories: Category[]
+type CategoryWithRelations = {
+    id: string
+    name: string
+    slug: string
+    description: string | null
+    image: string | null
+    parentId: string | null
+    publish: boolean
+    createdAt: Date
+    updatedAt: Date
+    parent: {
+        id: string
+        name: string
+    } | null
+    subcategories: {
+        id: string
+        name: string
+    }[]
     _count: {
         products: number
         subcategories: number
@@ -51,6 +66,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
         description: "",
         image: "",
         parentId: null,
+        publish: true,
     })
 
     const [uploadedImage, setUploadedImage] = useState<string[]>([])
@@ -77,6 +93,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                 description: formData.description || null,
                 image: uploadedImage[0] || null,
                 parentId: formData.parentId || null,
+                publish: formData.publish ?? true,
             }
 
             const result = await createCategory(cleanData)
@@ -84,7 +101,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
             if (result.success && result.category) {
                 toast.success("Success", "Category created successfully")
 
-                setCategories([result.category as CategoryWithRelations, ...categories])
+                setCategories([result.category, ...categories])
                 setIsAddDialogOpen(false)
                 resetForm()
             } else {
@@ -127,6 +144,25 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
         setCategoryToDelete(null)
     }
 
+    const handleTogglePublish = async (id: string) => {
+        try {
+            const result = await toggleCategoryPublish(id)
+
+            if (result.success && result.category) {
+                toast.success("Success", `Category ${result.category.publish ? "published" : "unpublished"} successfully`)
+                setCategories((prevCategories) =>
+                    prevCategories.map((c) =>
+                        c.id === id ? result.category : c
+                    )
+                )
+            } else {
+                toast.error("Error", result.error || "Failed to update publish status")
+            }
+        } catch (error) {
+            toast.error("Error", "An unexpected error occurred")
+        }
+    }
+
     const handleViewCategory = (category: CategoryWithRelations) => {
         setSelectedCategory(category)
         setViewDialogOpen(true)
@@ -139,6 +175,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
             description: category.description || "",
             image: category.image || "",
             parentId: category.parentId || null,
+            publish: category.publish,
         })
         setUploadedImage(category.image ? [category.image] : [])
         setIsEditDialogOpen(true)
@@ -165,6 +202,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                 description: formData.description || null,
                 image: uploadedImage[0] || null,
                 parentId: formData.parentId || null,
+                publish: formData.publish ?? true,
             }
 
             const result = await updateCategory(editingCategory.id, cleanData)
@@ -174,7 +212,7 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
 
                 // Update the category in the list
                 setCategories(categories.map((c) =>
-                    c.id === editingCategory.id ? (result.category as CategoryWithRelations) : c
+                    c.id === editingCategory.id ? result.category : c
                 ))
                 setIsEditDialogOpen(false)
                 setEditingCategory(null)
@@ -195,15 +233,16 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
             description: "",
             image: "",
             parentId: null,
+            publish: true,
         })
         setUploadedImage([])
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold mb-2">Category Management</h1>
+                    <h1 className="text-2xl font-bold mb-2">Category Management</h1>
                     <p className="text-muted-foreground">Manage your product categories</p>
                 </div>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -270,6 +309,16 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                                     disabled={isSubmitting}
                                 />
                             </div>
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="publish"
+                                    checked={formData.publish}
+                                    onChange={(e) => setFormData({ ...formData, publish: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <Label htmlFor="publish">Published</Label>
+                            </div>
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button
@@ -296,11 +345,12 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                         <table className="w-full">
                             <thead className="border-b bg-muted/50">
                                 <tr>
-                                    <th className="text-left p-4 font-medium">Category</th>
-                                    <th className="text-left p-4 font-medium">Parent</th>
-                                    <th className="text-left p-4 font-medium">Products</th>
-                                    <th className="text-left p-4 font-medium">Subcategories</th>
-                                    <th className="text-left p-4 font-medium">Actions</th>
+                                    <th className="text-center p-4 font-medium">Category</th>
+                                    <th className="text-center p-4 font-medium">Parent</th>
+                                    <th className="text-center p-4 font-medium">Products</th>
+                                    <th className="text-center p-4 font-medium">Subcategories</th>
+                                    <th className="text-center p-4 font-medium">Publish</th>
+                                    <th className="text-center p-4 font-medium">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -355,6 +405,19 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                                                 ) : (
                                                     <span className="text-muted-foreground text-sm">None</span>
                                                 )}
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <Switch
+                                                    className="
+                                                        data-[state=checked]:bg-black 
+                                                        data-[state=unchecked]:bg-gray-300
+                                                        cursor-pointer 
+                                                        transition-transform 
+                                                        active:scale-95
+                                                    "
+                                                    checked={category.publish}
+                                                    onCheckedChange={() => handleTogglePublish(category.id)}
+                                                />
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex space-x-2">
@@ -462,6 +525,16 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                                 disabled={isSubmitting}
                             />
                         </div>
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="edit-publish"
+                                checked={formData.publish}
+                                onChange={(e) => setFormData({ ...formData, publish: e.target.checked })}
+                                className="rounded"
+                            />
+                            <Label htmlFor="edit-publish">Published</Label>
+                        </div>
                     </div>
                     <div className="flex justify-end gap-2">
                         <Button
@@ -545,13 +618,13 @@ export default function CategoriesClient({ categories: initialCategories }: Cate
                                 <div className="space-y-2">
                                     <Label className="text-muted-foreground">Products</Label>
                                     <p className="text-xl font-semibold">
-                                        {selectedCategory._count.products} product{selectedCategory._count.products !== 1 ? 's' : ''}
+                                        {selectedCategory._count?.products ?? 0} product{(selectedCategory._count?.products ?? 0) !== 1 ? 's' : ''}
                                     </p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-muted-foreground">Subcategories</Label>
                                     <p className="text-xl font-semibold">
-                                        {selectedCategory._count.subcategories} subcategor{selectedCategory._count.subcategories !== 1 ? 'ies' : 'y'}
+                                        {selectedCategory._count?.subcategories ?? 0} subcategor{(selectedCategory._count?.subcategories ?? 0) !== 1 ? 'ies' : 'y'}
                                     </p>
                                 </div>
                             </div>
