@@ -66,7 +66,31 @@ export default function ProductsClient({ products: initialProducts, categories }
     // Store raw string values for comma-separated inputs
     const [sizesInput, setSizesInput] = useState("")
     const [colorsInput, setColorsInput] = useState("")
+    const [priceInput, setPriceInput] = useState("")
+    const [originalPriceInput, setOriginalPriceInput] = useState("")
     const [uploadedImages, setUploadedImages] = useState<string[]>([])
+
+    const handlePriceInputChange = (value: string) => {
+        if (!/^\d*\.?\d{0,2}$/.test(value)) return
+    
+        setPriceInput(value)
+    
+        setFormData({
+            ...formData,
+            price: value === "" ? 0 : Number(value),
+        })
+    }
+    
+    const handleOriginalPriceInputChange = (value: string) => {
+        if (!/^\d*\.?\d{0,2}$/.test(value)) return
+    
+        setOriginalPriceInput(value)
+    
+        setFormData({
+            ...formData,
+            originalPrice: value === "" ? undefined : Number(value),
+        })
+    }
 
     const handleAddProduct = async () => {
         if (!formData.name || !formData.description || !formData.categoryId) {
@@ -201,6 +225,8 @@ export default function ProductsClient({ products: initialProducts, categories }
         })
         setSizesInput(product.sizes.join(", "))
         setColorsInput(product.colors.join(", "))
+        setPriceInput(String(product.price))
+        setOriginalPriceInput(product.originalPrice ? String(product.originalPrice) : "")
         setUploadedImages(product.images)
         setIsEditDialogOpen(true)
     }
@@ -289,6 +315,8 @@ export default function ProductsClient({ products: initialProducts, categories }
         })
         setSizesInput("")
         setColorsInput("")
+        setPriceInput("")
+        setOriginalPriceInput("")
         setUploadedImages([])
     }
 
@@ -342,30 +370,26 @@ export default function ProductsClient({ products: initialProducts, categories }
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="price">Price (Rs.) *</Label>
+                                    <Label htmlFor="price">Price (LKR) *</Label>
                                     <Input
                                         id="price"
-                                        type="number"
-                                        value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                                        placeholder="0"
-                                        min="0"
-                                        step="0.01"
+                                        type="text"
+                                        inputMode="decimal"
+                                        value={priceInput}
+                                        onChange={(e) => handlePriceInputChange(e.target.value)}
+                                        placeholder="0.00"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="originalPrice">Original Price (Rs.)</Label>
+                                    <Label htmlFor="originalPrice">Original Price (LKR)</Label>
                                     <Input
                                         id="originalPrice"
-                                        type="number"
-                                        value={formData.originalPrice || ""}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, originalPrice: e.target.value ? Number(e.target.value) : undefined })
-                                        }
-                                        placeholder="0"
-                                        min="0"
-                                        step="0.01"
+                                        type="text"
+                                        inputMode="decimal"
+                                        value={originalPriceInput}
+                                        onChange={(e) => handleOriginalPriceInputChange(e.target.value)}
+                                        placeholder="0.00"
                                     />
                                 </div>
                             </div>
@@ -649,8 +673,8 @@ export default function ProductsClient({ products: initialProducts, categories }
                                 <Input
                                     id="edit-price"
                                     type="number"
-                                    value={formData.price}
-                                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                                    value={priceInput}
+                                    onChange={(e) => handlePriceInputChange(e.target.value)}
                                     placeholder="0"
                                     min="0"
                                     step="0.01"
@@ -662,10 +686,8 @@ export default function ProductsClient({ products: initialProducts, categories }
                                 <Input
                                     id="edit-originalPrice"
                                     type="number"
-                                    value={formData.originalPrice || ""}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, originalPrice: e.target.value ? Number(e.target.value) : undefined })
-                                    }
+                                    value={originalPriceInput}
+                                    onChange={(e) => handleOriginalPriceInputChange(e.target.value)}
                                     placeholder="0"
                                     min="0"
                                     step="0.01"

@@ -15,11 +15,11 @@ export function AdminHeader() {
         <div className="flex items-center gap-4">
           <Link href="/admin" className="flex items-center gap-4">
             <Image src="/images/gd-logo.png" alt="GD Industries" width={40} height={40} className="rounded" />
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">GD INDUSTRIES</h1>
+              <p className="text-sm text-gray-500">Admin Panel</p>
+            </div>
           </Link>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">GD Industries</h1>
-            <p className="text-sm text-gray-500">Admin Panel</p>
-          </div>
         </div>
 
         <div className="flex items-center gap-4">
